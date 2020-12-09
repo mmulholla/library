@@ -1,0 +1,70 @@
+{
+    "Tests" : [ 
+        { 
+            "FileName" : "ProjectsAll.yaml",
+            "ExpectOutcome" : "PASS",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsAll.yaml"] 
+        },
+        { 
+            "FileName" : "projectsMinimum.yaml",
+            "ExpectOutcome" : "PASS",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsMinimum.yaml"] 
+        },
+        { 
+            "FileName" : "projectsNoName.yaml",
+            "ExpectOutcome" : " name is required",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsNoName.yaml"] 
+        },
+        { 
+            "FileName" : "projectsMixedCaseName.yaml",
+            "ExpectOutcome" : "does not match pattern",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                "devfiles/v200/projects/projectsMixedCaseName.yaml"] 
+        }, 
+         { 
+            "FileName" : "projectsGitAndGithub.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsGitAndGithub.yaml"] 
+        },
+        { 
+            "FileName" : "projectsGitAndZip.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsGitAndZip.yaml"] 
+        },
+        { 
+            "FileName" : "projectsGithubAndZip.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsGithubAndZip.yaml"] 
+        },
+        { 
+            "FileName" : "projectsGitNoRemotes.yaml",
+            "ExpectOutcome" : "git: remotes is required",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsGitNoRemotes.yaml"] 
+        },
+        { 
+            "FileName" : "projectsGithubNoRemotes.yaml",
+            "ExpectOutcome" : "github: remotes is required",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsGithubNoRemotes.yaml"] 
+        },
+        { 
+            "FileName" : "projectsZipNoLocation.yaml",
+            "ExpectOutcome" : "zip: Invalid type. Expected: object, given: null",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsZipNoLocation.yaml"] 
+        },
+        { 
+            "FileName" : "projectsNoGitGithubOrZip.yaml",
+            "ExpectOutcome" : "git is required",
+            "Files": ["devfiles/v200/projects/projectsStart.yaml",
+                        "devfiles/v200/projects/projectsNoGitGithubOrZip.yaml"] 
+        }
+    ]                             
+}

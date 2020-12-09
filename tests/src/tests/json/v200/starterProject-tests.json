@@ -1,0 +1,70 @@
+{
+    "Tests" : [
+        { 
+            "FileName" : "starterProjectsAll.yaml",
+            "ExpectOutcome" : "PASS",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsAll.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsMinimum.yaml",
+            "ExpectOutcome" : "PASS",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsMinimum.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsNoName.yaml",
+            "ExpectOutcome" : "name is required",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsNoName.yaml"] 
+        },
+        { 
+            "FileName" : "starterPprojectsMixedCaseName.yaml",
+            "ExpectOutcome" : "does not match pattern",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                "devfiles/v200/starterProjects/starterProjectsMixedCaseName.yaml"] 
+        }, 
+        { 
+            "FileName" : "starterProjectsGitAndGithub.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsGitAndGithub.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsGitAndZip.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsGitAndZip.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsGithubAndZip.yaml",
+            "ExpectOutcome" : "Must validate one and only one schema (oneOf)",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsGithubAndZip.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsGitNoRemotes.yaml",
+            "ExpectOutcome" : "git: remotes is required",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsGitNoRemotes.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsGithubNoRemotes.yaml",
+            "ExpectOutcome" : "github: remotes is required",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsGithubNoRemotes.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsZipNoLocation.yaml",
+            "ExpectOutcome" : "zip: Invalid type. Expected: object, given: null",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsZipNoLocation.yaml"] 
+        },
+        { 
+            "FileName" : "starterProjectsNoGitGithubOrZip.yaml",
+            "ExpectOutcome" : "git is required",
+            "Files": ["devfiles/v200/starterProjects/starterProjectsStart.yaml",
+                        "devfiles/v200/starterProjects/starterProjectsNoGitGithubOrZip.yaml"] 
+        }
+    ]                             
+}
