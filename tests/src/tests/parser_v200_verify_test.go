@@ -217,10 +217,10 @@ func runMultiThreadTest(testContent TestContent, t *testing.T) {
 	devfileName := testContent.FileName
 	var i int
 	for i = 1; i < numThreads; i++ {
-		testContent.FileName = devfileName + strconv.Itoa(i)
+		testContent.FileName = AddSuffixToFileName(devfileName, strconv.Itoa(i))
 		go runTest(testContent, t)
 	}
-	testContent.FileName = devfileName + strconv.Itoa(i)
+	testContent.FileName = AddSuffixToFileName(devfileName, strconv.Itoa(i))
 	runTest(testContent, t)
 
 	LogMessage(fmt.Sprintf("Sleep 2 seconds to allow all threads to complete : %s", devfileName))
@@ -254,7 +254,7 @@ func runTest(testContent TestContent, t *testing.T) {
 	if err != nil {
 		t.Fatalf(LogMessage(fmt.Sprintf("ERROR creating devfile :  %s : %v", testContent.FileName, err)))
 	}
-
+	
 	if testContent.EditContent {
 		if len(testContent.CommandTypes) > 0 {
 			err = testDevfile.EditCommands()

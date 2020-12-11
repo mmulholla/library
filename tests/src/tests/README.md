@@ -37,6 +37,9 @@ The tests which generate devfiles with random content at run time currently cove
     1. ```./tmp/test.log``` contains log output from the tests.
     1. ```./tmp/parser_v200_verify_test/Test_*.yaml``` are the devfiles which are randomly generated at runtime. The file name matches the name of the test function which resulted in them being created. 
     1. ```./tmp/parser_v200_schema_test/*.yaml``` are the pre-created devfiles.
+    1. If a test detects an error when compariing properties returned by the parser with expected properties
+        *  ```./tmp/parser_v200_schema_test/Test_*_<property id>_Parser.yaml``` - property as returned by the parser
+        *  ```./tmp/parser_v200_schema_test/Test_*_<property id>_Test.yaml``` - property as expected by the test
 
 Note: each run of the test removes the existing conents of the ```./tmp``` directory 
 
@@ -84,19 +87,19 @@ There are also some constants which control execution of the tests:
 
 * Each devfile is created in a schema structure.
 * Which attributes are set and the values used are randomized.
-* A helper structure is used to track each created object, these are kept in a maps.
 * Once the schema structure is complete it is written in one of two ways.
     * using the sigs.k8s.io/yaml.
     * using the parser.
 * Once the devfile is created on disk the parser is used to read and validate it. 
 * If editing the devfile
-    * each object is retrieved, modified and written back to the pasrer
+    * each object is retrieved, modified and written back to the parser
     * the parser is used to write the devfile to disk
     * the parser is then used to read and validate the modified devfile.
-* Each object in then devfile is then retrieved from the parser and checked
-    * The object returned by the parser is compared to the equivalent object tracked in the test.
-        * if the obejcst do not match the test fails
-    * If the parser returns more or fewer objects than expected, the test fails.   
+* Each array of objects in then devfile are then retrieved from the parser and compared. If this fails:
+    * Each object returned by the parser is compared to the equivalent object tracked in the test.
+        * if the obejcts do not match the test fails
+            * Files are output with the content of each object.
+     * If the parser returns more or fewer objects than expected, the test fails.   
 
 ## Updating tests
 
@@ -127,18 +130,10 @@ For example add support for apply command to existing command support:
             * randomly set attribute values in the provided apply command object
         * follow the implementation of other similar functions.
     * modify:
-        * ```type GenericCommand struct```
-            * add a variabale to store the address of a schema.ApplyCommand object 
-            * the value is set by the test for later comparision with that returned by the parser. 
-            * one of these structures is created for each command created.
-        * ```func generateCommand(command *schema.Command, genericCommand *GenericCommand)```
+       * ```func generateCommand(command *schema.Command, genericCommand *GenericCommand)```
             * add logic to call createApplyCommand if commandType indicates such.
-            * store the generated ApplyCommand object in GenericCommand structure.
         * ```func (devfile *TestDevfile) UpdateCommand(command *schema.Command) error```
             * add logic to call setApplyCommandValues if commandType indicates such.
-            * update the ApplyCommand object in GenericCommand structure.
-        * ```func (devfile TestDevfile) VerifyCommands(commands map[string]schema.Command)```
-            * add logic to compare an apply command object returned by the parser with that stored in the GenericCommand structure
 1. In ```parser_v200_verify_test.go```
     * add new tests. for example:
         * Test_ApplyCommand -  CreateWithParser set to false, EditContent set to false
@@ -148,7 +143,6 @@ For example add support for apply command to existing command support:
     * modify existing test to include Apply commands
         * Test_MultiCommand 
         * Test_Everything
-    * add logic to ```runTest(testContent TestContent, t *testing.T)``` for creatin and editing the     
 
 ### Add new property
 
@@ -169,43 +163,21 @@ Using existing support for commands as an illustration, any new property support
         * ```func set<command-type>CommandValues(project-sourceProject *schema.<project-source>)```
             * sets random attributes into the provided object 
             * for example see: ```func setExecCommandValues(execCommand *schema.ExecCommand)```
-    *  GenericCommand structure is created, one per command to track its content, for example:        
-        ```
-        type GenericCommand struct {
-	        Name                   string
-	        Verified               bool
-	        CommandType            schema.CommandType
-	        ExecCommandSchema      *schema.ExecCommand
-	        SchemaCompositeCommand *schema.CompositeCommand
-        }
-        ``` 
-
     * Functions general to all commands  
         * ```func (devfile *TestDevfile) addCommand(commandType schema.CommandType) string```
             * main entry point for a test to add a command
             * maintains the array of commands in the schema structure
-            * creates a GenericCommand object to store information about the created command
             * calls generateCommand() 
-            * saves the GenericCommand object in a map for access later   
         * ```func generateCommand(command *schema.Command, genericCommand *GenericCommand)```
             * includes logic to call the ```create<Command-Type>Command``` function for the command-Type of the supplied command object.
-            * stores a refrence to the generated command object in GenericCommand structure.
         * ```func (devfile *TestDevfile) UpdateCommand(command *schema.Command) error```
             * includes logic to call set<commad-type>CommandValues for each commandType.
-            * update the equiavalent object in GenericCommand structure.
-        * ```func (devfile TestDevfile) VerifyCommands(commands map[string]schema.Command)```
-            * add logic to compare an each command object returned by the parser with that stored in the GenericCommand structure.
+        * ```func (devfile TestDevfile) VerifyCommands(parserCommands []schema.Command) error```
+            * Includes logic to compare the array of commands obtained from the parser with those created by the test. if the compare fails:
+                * each individual command is compared.
+                    * if a command compare fails, the parser version and test version of the command are oputput as yaml files  to the tmp directory 
+                * a check is made to determine if the parser returned a command not known to the test or the pasrer omitted a command expected by the test.
 1. ```test-utils.go```
-    * Includes code for all properties
-    * Support for keeping a map of command objects
-        * Command map is in ```type TestDevfile struct```
-            * usees command id as the key.
-        * functions to add and get from the map
-            * ```func (devfile *TestDevfile) MapCommand(command GenericCommand)```
-            * ```func (devfile *TestDevfile) GetCommand(id string) *GenericCommand```  
-    * ```func (devfile *TestDevfile) CreateDevfile(useParser bool)```
-        * Includes code when using the parser to create the devfile 
-            * for commands: code required to add command objects to the the parser.
     * ```func (devfile TestDevfile) Verify()``` 
         * Includes code to get object from the paser and verify their content.
         * For commands code is required to: 
@@ -245,7 +217,6 @@ Create, modify and verify an exec command:
             1. command-test-utils.GenerateCommand
                 1.  command-test-utils.createExecCommand
                     1. command-test-utils.setExecCommandValues
-            1. test-utils.MapCommand
         1. test-utils.CreateDevfile
         1. test-utils.EditCommands
             1.  command-test-utils.UpdateCommand

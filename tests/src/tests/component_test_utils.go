@@ -3,31 +3,13 @@ package tests
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 
 	schema "github.com/devfile/api/pkg/apis/workspaces/v1alpha2"
 	"github.com/google/go-cmp/cmp"
+	"sigs.k8s.io/yaml"
 )
-
-type GenericComponent struct {
-	Name                     string
-	Verified                 bool
-	ComponentType            schema.ComponentType
-	ContainerComponentSchema *schema.ContainerComponent
-	VolumeComponentSchema    *schema.VolumeComponent
-}
-
-func (genericComponent *GenericComponent) setVerified() {
-	genericComponent.Verified = true
-}
-
-func (genericComponent *GenericComponent) setName(name string) {
-	genericComponent.Name = name
-}
-
-func (genericComponent *GenericComponent) checkId(coomponent schema.Component) bool {
-	return genericComponent.Name == coomponent.Name
-}
 
 func AddVolume(numVols int) []schema.VolumeMount {
 	commandVols := make([]schema.VolumeMount, numVols)
@@ -37,6 +19,19 @@ func AddVolume(numVols int) []schema.VolumeMount {
 		LogMessage(fmt.Sprintf("   ....... Add Volume: %s", commandVols[i]))
 	}
 	return commandVols
+}
+
+func getSchemaComponent(components []schema.Component, name string) (*schema.Component, bool) {
+	found := false
+	var schemaComponent schema.Component
+	for _, component := range components {
+		if component.Name == name {
+			schemaComponent = component
+			found = true
+			break
+		}
+	}
+	return &schemaComponent, found
 }
 
 func (devfile *TestDevfile) AddComponent(componentType schema.ComponentType) string {
@@ -55,30 +50,22 @@ func (devfile *TestDevfile) AddComponent(componentType schema.ComponentType) str
 		components = make([]schema.Component, 1)
 	}
 
-	genericComponent := GenericComponent{}
-	genericComponent.ComponentType = componentType
-
-	generateComponent(&components[index], &genericComponent)
-
-	devfile.MapComponent(genericComponent)
+	generateComponent(&components[index], componentType)
 	devfile.SchemaDevFile.Components = components
 
 	return components[index].Name
 
 }
 
-func generateComponent(component *schema.Component, genericComponent *GenericComponent) {
+func generateComponent(component *schema.Component, componentType schema.ComponentType) {
 
 	component.Name = GetRandomUniqueString(8, true)
-	genericComponent.setName(component.Name)
 	LogMessage(fmt.Sprintf("   ....... Name: %s", component.Name))
 
-	if genericComponent.ComponentType == schema.ContainerComponentType {
+	if componentType == schema.ContainerComponentType {
 		component.Container = createContainerComponent()
-		genericComponent.ContainerComponentSchema = component.Container
-	} else if genericComponent.ComponentType == schema.VolumeComponentType {
+	} else if componentType == schema.VolumeComponentType {
 		component.Volume = createVolumeComponent()
-		genericComponent.VolumeComponentSchema = component.Volume
 	}
 }
 
@@ -143,7 +130,7 @@ func setContainerComponentValues(containerComponent *schema.ContainerComponent) 
 			containerComponent.SourceMapping = "/" + GetRandomString(8, false)
 			LogMessage(fmt.Sprintf("   ....... SourceMapping: %s", containerComponent.SourceMapping))
 		}
-	} 
+	}
 
 	if GetBinaryDecision() {
 		containerComponent.Env = AddEnv(GetRandomNumber(4))
@@ -175,15 +162,13 @@ func setVolumeComponentValues(volumeComponent *schema.VolumeComponent) {
 func (devfile *TestDevfile) UpdateComponent(component *schema.Component) error {
 
 	errorString := ""
-	genericComponent := devfile.GetComponent(component.Name)
-	if genericComponent != nil {
+	testComponent, found := getSchemaComponent(devfile.SchemaDevFile.Components, component.Name)
+	if found {
 		LogMessage(fmt.Sprintf(" ....... Updating component name: %s", component.Name))
-		if genericComponent.ComponentType == schema.ContainerComponentType {
+		if testComponent.ComponentType == schema.ContainerComponentType {
 			setContainerComponentValues(component.Container)
-			genericComponent.ContainerComponentSchema = component.Container
-		} else if genericComponent.ComponentType == schema.VolumeComponentType {
+		} else if testComponent.ComponentType == schema.VolumeComponentType {
 			setVolumeComponentValues(component.Volume)
-			genericComponent.VolumeComponentSchema = component.Volume
 		}
 	} else {
 		errorString += LogMessage(fmt.Sprintf(" ....... Component not found in test : %s", component.Name))
@@ -195,50 +180,46 @@ func (devfile *TestDevfile) UpdateComponent(component *schema.Component) error {
 	return err
 }
 
-func (devfile TestDevfile) VerifyComponents(components []schema.Component) error {
+func (devfile TestDevfile) VerifyComponents(parserComponents []schema.Component) error {
 
 	LogMessage("Enter VerifyComponents")
 	errorString := ""
 
-	if devfile.ComponentMap != nil {
-		for _, component := range components {
-
-			LogMessage(fmt.Sprintf(" --> Volume Component structures matched - name : %s ", component.Name))
-			if matchedComponent, found := devfile.ComponentMap[component.Name]; found {
-				matchedComponent.setVerified()
-				if matchedComponent.ComponentType == schema.ContainerComponentType {
-					if !cmp.Equal(*component.Container, *matchedComponent.ContainerComponentSchema) {
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Container Component %s from parser: %v", component.Name, *component.Container))
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Container Component %s from tester: %v", matchedComponent.Name, matchedComponent.ContainerComponentSchema))
-					} else {
-						LogMessage(fmt.Sprintf(" --> Container Component structures matched - name : %s ", component.Name))
+	// Compare entire array of commands
+	if !cmp.Equal(parserComponents, devfile.SchemaDevFile.Components) {
+		errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component array compare failed."))
+		for _, component := range parserComponents {
+			if testComponent, found := getSchemaComponent(devfile.SchemaDevFile.Components, component.Name); found {
+				if !cmp.Equal(component, *testComponent) {
+					parserFilename := AddSuffixToFileName(devfile.FileName, "_"+component.Name+"_Parser")
+					testFilename := AddSuffixToFileName(devfile.FileName, "_"+component.Name+"_Test")
+					LogMessage(fmt.Sprintf("   .......marshall and write devfile %s", parserFilename))
+					c, err := yaml.Marshal(component)
+					if err == nil {
+						err = ioutil.WriteFile(parserFilename, c, 0644)
 					}
-				}
-				if matchedComponent.ComponentType == schema.VolumeComponentType {
-					if !cmp.Equal(*component.Volume, *matchedComponent.VolumeComponentSchema) {
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Volume Component %s from parser: %v", component.Name, *component.Volume))
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Volume Component %s from tester: %v", matchedComponent.Name, matchedComponent.VolumeComponentSchema))
-					} else {
-						LogMessage(fmt.Sprintf(" --> Volume Component structures matched - name : %s ", component.Name))
+					LogMessage(fmt.Sprintf("   .......marshall and write devfile %s", testFilename))
+					c, err = yaml.Marshal(testComponent)
+					if err == nil {
+						err = ioutil.WriteFile(testFilename, c, 0644)
 					}
+					errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component %s did not match, see files : %s and %s", component.Name, parserFilename, testFilename))
+				} else {
+					LogMessage(fmt.Sprintf(" --> Component matched : %s", component.Name))
 				}
-
 			} else {
-				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component from parser not known to test - - name : %s ", component.Name))
+				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component from parser not known to test - id : %s ", component.Name))
 			}
 		}
-
-		for _, genericComponent := range devfile.ComponentMap {
-			if !genericComponent.Verified {
-				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component not returned by parser - name : %s", genericComponent.Name))
+		for _, component := range devfile.SchemaDevFile.Components {
+			if _, found := getSchemaComponent(parserComponents, component.Name); !found {
+				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Component from test not returned by parser : %s ", component.Name))
 			}
 		}
-
 	} else {
-		if components != nil {
-			errorString += LogMessage(" --> ERROR: Parser returned components but Test does not include any.")
-		}
+		LogMessage(fmt.Sprintf(" --> Component structures matched"))
 	}
+
 	var err error
 	if errorString != "" {
 		err = errors.New(errorString)

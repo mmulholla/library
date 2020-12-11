@@ -82,11 +82,18 @@ func GetDevFileName() string {
 	callerName := runtime.FuncForPC(pc).Name()
 
 	pos1 := strings.LastIndex(callerName, "/tests.") + len("/tests.")
-	devfileName := callerName[pos1:len(callerName)]
+	devfileName := destDir + callerName[pos1:len(callerName)] + ".yaml"
 
-	LogMessage(fmt.Sprintf("GetDevFileName : %s", destDir+devfileName))
+	LogMessage(fmt.Sprintf("GetDevFileName : %s", devfileName))
 
-	return destDir + devfileName
+	return devfileName
+}
+
+func AddSuffixToFileName(fileName string, suffix string) string {
+	pos1 := strings.LastIndex(fileName, ".yaml")
+	newFileName := fileName[0:pos1] + suffix + ".yaml"
+	LogMessage(fmt.Sprintf("Add suffix %s to fileName %s : %s", suffix, fileName, newFileName))
+	return newFileName
 }
 
 func LogMessage(message string) string {
@@ -99,8 +106,6 @@ type TestDevfile struct {
 	FileName        string
 	ParsedSchemaObj parser.DevfileObj
 	SchemaParsed    bool
-	CommandMap      map[string]*GenericCommand
-	ComponentMap    map[string]*GenericComponent
 }
 
 var StringCount int = 0
@@ -165,39 +170,16 @@ func GetDevfile(fileName string) TestDevfile {
 	return testDevfile
 }
 
-func (devfile *TestDevfile) MapCommand(command GenericCommand) {
-
-	if devfile.CommandMap == nil {
-		devfile.CommandMap = make(map[string]*GenericCommand)
-	}
-	LogMessage(fmt.Sprintf("   .......Add command to commandMap : %s", command.Id))
-	devfile.CommandMap[command.Id] = &command
-}
-
-func (devfile *TestDevfile) GetCommand(id string) *GenericCommand {
-
-	genericCommand := devfile.CommandMap[id]
-	return genericCommand
-
-}
-
-func (devfile *TestDevfile) MapComponent(component GenericComponent) {
-
-	if devfile.ComponentMap == nil {
-		devfile.ComponentMap = make(map[string]*GenericComponent)
-	}
-	LogMessage(fmt.Sprintf("   .......Add component to componentMap : %s", component.Name))
-	devfile.ComponentMap[component.Name] = &component
-}
-
-func (devfile *TestDevfile) GetComponent(name string) *GenericComponent {
-	return devfile.ComponentMap[name]
-}
-
 func (devfile *TestDevfile) CreateDevfile(useParser bool) error {
 	var err error
+
+	fileName := devfile.FileName
+	if !strings.HasSuffix(fileName, ".yaml") {
+		fileName += ".yaml"
+	}
+
 	if useParser {
-		LogMessage(fmt.Sprintf("   .......use Parser to write devfile %s", devfile.FileName))
+		LogMessage(fmt.Sprintf("   .......use Parser to write devfile %s", fileName))
 		newDevfile, err := devfileData.NewDevfileData(devfile.SchemaDevFile.SchemaVersion)
 		if err != nil {
 			LogMessage(fmt.Sprintf(" ..... ERROR: creating new devfile : %v", err))
@@ -211,7 +193,7 @@ func (devfile *TestDevfile) CreateDevfile(useParser bool) error {
 			// add components to the new devfile
 			newDevfile.AddComponents(devfile.SchemaDevFile.Components)
 
-			ctx := devfileCtx.NewDevfileCtx(devfile.FileName)
+			ctx := devfileCtx.NewDevfileCtx(fileName)
 
 			err = ctx.SetAbsPath()
 			if err != nil {
@@ -233,7 +215,7 @@ func (devfile *TestDevfile) CreateDevfile(useParser bool) error {
 		c, err := yaml.Marshal(&(devfile.SchemaDevFile))
 
 		if err == nil {
-			err = ioutil.WriteFile(devfile.FileName, c, 0644)
+			err = ioutil.WriteFile(fileName, c, 0644)
 		}
 	}
 	if err == nil {
@@ -306,6 +288,7 @@ func (devfile TestDevfile) EditCommands() error {
 		LogMessage(fmt.Sprintf(" ..... Write updated file to yaml : %s", devfile.FileName))
 		devfile.ParsedSchemaObj.WriteYamlDevfile()
 		devfile.SchemaParsed = false
+
 	} else {
 		LogMessage(fmt.Sprintf(" ..... ERROR: from parser : %v", err))
 	}

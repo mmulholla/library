@@ -3,31 +3,13 @@ package tests
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/google/go-cmp/cmp"
+	"sigs.k8s.io/yaml"
 
 	schema "github.com/devfile/api/pkg/apis/workspaces/v1alpha2"
 )
-
-type GenericCommand struct {
-	Id                     string
-	Verified               bool
-	CommandType            schema.CommandType
-	ExecCommandSchema      *schema.ExecCommand
-	SchemaCompositeCommand *schema.CompositeCommand
-}
-
-func (genericCommand *GenericCommand) setVerified() {
-	genericCommand.Verified = true
-}
-
-func (genericCommand *GenericCommand) setId(id string) {
-	genericCommand.Id = id
-}
-
-func (genericCommand *GenericCommand) checkId(command schema.Command) bool {
-	return genericCommand.Id == command.Id
-}
 
 func AddEnv(numEnv int) []schema.EnvVar {
 	commandEnvs := make([]schema.EnvVar, numEnv)
@@ -77,49 +59,40 @@ func (devfile *TestDevfile) addCommand(commandType schema.CommandType) string {
 		commands = make([]schema.Command, 1)
 	}
 
-	genericCommand := GenericCommand{}
-	genericCommand.CommandType = commandType
-
-	generateCommand(&commands[index], &genericCommand)
-
-	devfile.MapCommand(genericCommand)
+	generateCommand(&commands[index], commandType)
 	devfile.SchemaDevFile.Commands = commands
 
 	return commands[index].Id
 
 }
 
-func generateCommand(command *schema.Command, genericCommand *GenericCommand) {
-
+func generateCommand(command *schema.Command, commandType schema.CommandType) {
 	command.Id = GetRandomUniqueString(8, true)
-	genericCommand.Id = command.Id
 	LogMessage(fmt.Sprintf("   ....... id: %s", command.Id))
 
-	if genericCommand.CommandType == schema.ExecCommandType {
+	if commandType == schema.ExecCommandType {
 		command.Exec = createExecCommand()
-		genericCommand.ExecCommandSchema = command.Exec
-	} else if genericCommand.CommandType == schema.CompositeCommandType {
+	} else if commandType == schema.CompositeCommandType {
 		command.Composite = createCompositeCommand()
-		genericCommand.SchemaCompositeCommand = command.Composite
 	}
 }
 
-func (devfile *TestDevfile) UpdateCommand(command *schema.Command) error {
+func (devfile *TestDevfile) UpdateCommand(parserCommand *schema.Command) error {
 
 	errorString := ""
-	genericCommand := devfile.GetCommand(command.Id)
-	if genericCommand != nil {
-		LogMessage(fmt.Sprintf(" ....... Updating command id: %s", command.Id))
-		if genericCommand.CommandType == schema.ExecCommandType {
-			setExecCommandValues(command.Exec)
-			genericCommand.ExecCommandSchema = command.Exec
-		} else if genericCommand.CommandType == schema.CompositeCommandType {
-			setCompositeCommandValues(command.Composite)
-			genericCommand.SchemaCompositeCommand = command.Composite
+	testCommand, found := getSchemaCommand(devfile.SchemaDevFile.Commands, parserCommand.Id)
+	if found {
+		LogMessage(fmt.Sprintf(" ....... Updating command id: %s", parserCommand.Id))
+		if testCommand.Exec != nil {
+			setExecCommandValues(parserCommand.Exec)
+		} else if testCommand.Composite != nil {
+			setCompositeCommandValues(parserCommand.Composite)
 		}
+		devfile.replaceSchemaCommand(*parserCommand)
 	} else {
-		errorString += LogMessage(fmt.Sprintf(" ....... Command not found in test : %s", command.Id))
+		errorString += LogMessage(fmt.Sprintf(" ....... Command not found in test : %s", parserCommand.Id))
 	}
+
 	var err error
 	if errorString != "" {
 		err = errors.New(errorString)
@@ -129,7 +102,7 @@ func (devfile *TestDevfile) UpdateCommand(command *schema.Command) error {
 
 func createExecCommand() *schema.ExecCommand {
 
-	LogMessage("Create a composite command :")
+	LogMessage("Create an exec command :")
 
 	execCommand := schema.ExecCommand{}
 
@@ -178,6 +151,28 @@ func setExecCommandValues(execCommand *schema.ExecCommand) {
 
 }
 
+func (devfile TestDevfile) replaceSchemaCommand(command schema.Command) {
+	for i := 0; i < len(devfile.SchemaDevFile.Commands); i++ {
+		if devfile.SchemaDevFile.Commands[i].Id == command.Id {
+			devfile.SchemaDevFile.Commands[i] = command
+			break
+		}
+	}
+}
+
+func getSchemaCommand(commands []schema.Command, id string) (*schema.Command, bool) {
+	found := false
+	var schemaCommand schema.Command
+	for _, command := range commands {
+		if command.Id == id {
+			schemaCommand = command
+			found = true
+			break
+		}
+	}
+	return &schemaCommand, found
+}
+
 func createCompositeCommand() *schema.CompositeCommand {
 
 	compositeCommand := schema.CompositeCommand{}
@@ -211,49 +206,48 @@ func setCompositeCommandValues(compositeCommand *schema.CompositeCommand) {
 	}
 }
 
-func (devfile TestDevfile) VerifyCommands(commands []schema.Command) error {
+func (devfile TestDevfile) VerifyCommands(parserCommands []schema.Command) error {
 
 	LogMessage("Enter VerifyCommands")
 	errorString := ""
 
-	if devfile.CommandMap != nil {
-		for _, command := range commands {
-
-			if matchedCommand, found := devfile.CommandMap[command.Id]; found {
-				matchedCommand.setVerified()
-				if matchedCommand.CommandType == schema.ExecCommandType {
-					if !cmp.Equal(*command.Exec, *matchedCommand.ExecCommandSchema) {
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Exec Command %s from parser: %v", command.Id, *command.Exec))
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Exec Command %s from tester: %v", matchedCommand.Id, matchedCommand.ExecCommandSchema))
-					} else {
-						LogMessage(fmt.Sprintf(" --> Exec command structures matched - id : %s ", command.Id))
+	// Compare entire array of commands
+	if !cmp.Equal(parserCommands, devfile.SchemaDevFile.Commands) {
+		errorString += LogMessage(fmt.Sprintf(" --> ERROR: Command array compare failed."))
+		// Array compare failed. Narrow down by comparing indivdual commands
+		for _, command := range parserCommands {
+			if testCommand, found := getSchemaCommand(devfile.SchemaDevFile.Commands, command.Id); found {
+				if !cmp.Equal(command, *testCommand) {
+					parserFilename := AddSuffixToFileName(devfile.FileName, "_"+command.Id+"_Parser")
+					testFilename := AddSuffixToFileName(devfile.FileName, "_"+command.Id+"_Test")
+					LogMessage(fmt.Sprintf("   .......marshall and write devfile %s", devfile.FileName))
+					c, err := yaml.Marshal(command)
+					if err == nil {
+						err = ioutil.WriteFile(parserFilename, c, 0644)
 					}
-				}
-				if matchedCommand.CommandType == schema.CompositeCommandType {
-					if !cmp.Equal(*command.Composite, *matchedCommand.SchemaCompositeCommand) {
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Composite Command from parser: %v", *command.Composite))
-						errorString += LogMessage(fmt.Sprintf(" ---> ERROR: Composite Command from tester: %v", matchedCommand.SchemaCompositeCommand))
-					} else {
-						LogMessage(fmt.Sprintf(" --> Composite command structures matched - id : %s ", command.Id))
+					LogMessage(fmt.Sprintf("   .......marshall and write devfile %s", devfile.FileName))
+					c, err = yaml.Marshal(testCommand)
+					if err == nil {
+						err = ioutil.WriteFile(testFilename, c, 0644)
 					}
+					errorString += LogMessage(fmt.Sprintf(" --> ERROR: Command %s did not match, see files : %s and %s", command.Id, parserFilename, testFilename))
+				} else {
+					LogMessage(fmt.Sprintf(" --> Command  matched : %s", command.Id))
 				}
-
 			} else {
 				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Command from parser not known to test - id : %s ", command.Id))
 			}
-		}
 
-		for _, genericCommand := range devfile.CommandMap {
-			if !genericCommand.Verified {
-				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Command not returned by parser - id : %s", genericCommand.Id))
+		}
+		for _, command := range devfile.SchemaDevFile.Commands {
+			if _, found := getSchemaCommand(parserCommands, command.Id); !found {
+				errorString += LogMessage(fmt.Sprintf(" --> ERROR: Command from test not returned by parser : %s ", command.Id))
 			}
 		}
-
 	} else {
-		if commands != nil {
-			errorString += LogMessage(" --> ERROR: Parser returned commands but Test does not include any.")
-		}
+		LogMessage(fmt.Sprintf(" --> Command structures matched"))
 	}
+
 	var err error
 	if errorString != "" {
 		err = errors.New(errorString)
