@@ -18,15 +18,21 @@ const (
 	maxCommands = 10
 	// maxComponents : The maximum number of components to include in a generated devfile
 	maxComponents = 10
+	// maxProjects : The maximum number of projects to include in a generated devfile
+	maxProjects = 10
+	// maxProjects : The maximum number of starter projects to include in a generated devfile
+	maxStarterProjects = 10
 )
 
 // TestContent - structure used by a test to configure the tests to run
 type TestContent struct {
-	CommandTypes     []schema.CommandType
-	ComponentTypes   []schema.ComponentType
-	FileName         string
-	CreateWithParser bool
-	EditContent      bool
+	CommandTypes          	[]schema.CommandType
+	ComponentTypes   		[]schema.ComponentType
+	ProjectTypes     		[]schema.ProjectSourceType
+	StarterProjectTypes 	[]schema.ProjectSourceType
+	FileName         		string
+	CreateWithParser 		bool
+	EditContent      		bool
 }
 
 func Test_ExecCommand(t *testing.T) {
@@ -207,10 +213,39 @@ func Test_MultiComponent(t *testing.T) {
 	runMultiThreadTest(testContent, t)
 }
 
-func Test_Everything(t *testing.T) {
+func Test_GitProject(t *testing.T) {
 	testContent := TestContent{}
-	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType}
-	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
 	testContent.CreateWithParser = true
 	testContent.EditContent = true
 	testContent.FileName = utils.GetDevFileName()
@@ -218,10 +253,242 @@ func Test_Everything(t *testing.T) {
 	runMultiThreadTest(testContent, t)
 }
 
+func Test_GithubProject(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipProject(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ProjectAll(t *testing.T) {
+	testContent := TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType, schema.GitHubProjectSourceType, schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitStarterProject(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitStarterProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitStarterProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GitStarterProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubStarterProject(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubStarterProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubStarterProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_GithubStarterProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitHubProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+
+func Test_ZipStarterProject(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipStarterProjectEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipStarterProjectCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_ZipStarterProjectCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+
+func Test_StarterProjectAll(t *testing.T) {
+	testContent := TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType, schema.GitHubProjectSourceType, schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_Everything(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType}
+	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
 // runMultiThreadTest : Runs the same test on multiple threads, the test is based on the content of the specified TestContent
 func runMultiThreadTest(testContent TestContent, t *testing.T) {
 
-	utils.LogMessage(fmt.Sprintf("Start Threaded test for %s", testContent.FileName))
+	utils.LogMessage(fmt.Sprintf("\n\nStart Threaded test for %s", testContent.FileName))
 
 	devfileName := testContent.FileName
 	var i int
@@ -260,6 +527,22 @@ func runTest(testContent TestContent, t *testing.T) {
 		}
 	}
 
+	if len(testContent.ProjectTypes) > 0 {
+		numProjects := utils.GetRandomNumber(maxProjects)
+		for i := 0; i < numProjects; i++ {
+			projectIndex := utils.GetRandomNumber(len(testContent.ProjectTypes))
+			testDevfile.AddProject(testContent.ProjectTypes[projectIndex-1])
+		}
+	}
+
+	if len(testContent.StarterProjectTypes) > 0 {
+		numProjects := utils.GetRandomNumber(maxStarterProjects)
+		for i := 0; i < numProjects; i++ {
+			projectIndex := utils.GetRandomNumber(len(testContent.StarterProjectTypes))
+			testDevfile.AddStarterProject(testContent.StarterProjectTypes[projectIndex-1])
+		}
+	}
+
 	err := testDevfile.CreateDevfile(testContent.CreateWithParser)
 	if err != nil {
 		t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("ERROR creating devfile :  %s : %v", testContent.FileName, err)))
@@ -278,6 +561,20 @@ func runTest(testContent TestContent, t *testing.T) {
 				t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("ERROR editing components :  %s : %v", testContent.FileName, err)))
 			}
 		}
+		if len(testContent.ProjectTypes) > 0 {
+			err = testDevfile.EditProjects()
+			if err != nil {
+				t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("ERROR editing projects :  %s : %v", testContent.FileName, err)))
+			}
+		}
+		if len(testContent.StarterProjectTypes) > 0 {
+			err = testDevfile.EditStarterProjects()
+			if err != nil {
+				t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("ERROR editing starter projects :  %s : %v", testContent.FileName, err)))
+			}
+		}
+
+
 	}
 
 	err = testDevfile.Verify()

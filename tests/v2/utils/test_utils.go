@@ -136,7 +136,11 @@ var RndSeed int64 = time.Now().UnixNano()
 // If lower is set to true a lower case string is returned.
 func GetRandomUniqueString(n int, lower bool) string {
 	StringCount++
-	return fmt.Sprintf("%s%04d", GetRandomString(n, lower), StringCount)
+	countAsString := fmt.Sprintf("%05d",StringCount)
+	if n < len(countAsString) {
+		n += len(countAsString)
+	}
+	return fmt.Sprintf("%s%s", GetRandomString(n-len(countAsString), lower), countAsString)
 }
 
 // Creates a unique seed for the randon generation.
@@ -222,6 +226,12 @@ func (devfile *TestDevfile) CreateDevfile(useParser bool) error {
 			// add components to the new devfile
 			newDevfile.AddComponents(devfile.SchemaDevFile.Components)
 
+			// add projects to the new devfile
+			newDevfile.AddProjects(devfile.SchemaDevFile.Projects)
+
+			// add starter projects to the new devfile
+			newDevfile.AddStarterProjects(devfile.SchemaDevFile.StarterProjects)
+
 			ctx := devfileCtx.NewDevfileCtx(fileName)
 
 			err = ctx.SetAbsPath()
@@ -302,11 +312,34 @@ func (devfile TestDevfile) Verify() error {
 		if components != nil && len(components) > 0 {
 			err = devfile.VerifyComponents(components)
 			if err != nil {
-				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Commands %s : %v", devfile.FileName, err)))
+				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Components %s : %v", devfile.FileName, err)))
 			}
 		} else {
 			LogInfoMessage(fmt.Sprintf("No components found in %s : ", devfile.FileName))
 		}
+
+		LogInfoMessage(fmt.Sprintf("Get projects %s : ", devfile.FileName))
+		projects, _ := devfile.ParsedSchemaObj.Data.GetProjects(common.DevfileOptions{})
+		if projects != nil && len(projects) > 0 {
+			err = devfile.VerifyProjects(projects)
+			if err != nil {
+				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Projects %s : %v", devfile.FileName, err)))
+			}
+		} else {
+			LogInfoMessage(fmt.Sprintf("No projects found in %s : ", devfile.FileName))
+		}
+
+		LogInfoMessage(fmt.Sprintf("Get starter projects %s : ", devfile.FileName))
+		starterProjects, _ := devfile.ParsedSchemaObj.Data.GetStarterProjects(common.DevfileOptions{})
+		if starterProjects != nil && len(starterProjects) > 0 {
+			err = devfile.VerifyStarterProjects(starterProjects)
+			if err != nil {
+				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Starter Projects %s : %v", devfile.FileName, err)))
+			}
+		} else {
+			LogInfoMessage(fmt.Sprintf("No starter projects found in %s : ", devfile.FileName))
+		}
+
 	}
 	var returnError error
 	if len(errorString) > 0 {
@@ -319,26 +352,33 @@ func (devfile TestDevfile) Verify() error {
 // EditCommands modifies random attributes for each of the commands in the devfile.
 func (devfile TestDevfile) EditCommands() error {
 
-	LogInfoMessage(fmt.Sprintf("Edit %s : ", devfile.FileName))
+	LogInfoMessage(fmt.Sprintf("Edit commands %s : ", devfile.FileName))
 
 	err := devfile.parseSchema()
 	if err != nil {
 		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
 	} else {
 		LogInfoMessage(fmt.Sprintf(" -> Get commands %s : ", devfile.FileName))
-		commands, _ := devfile.ParsedSchemaObj.Data.GetCommands(common.DevfileOptions{})
-		for _, command := range commands {
-			err = devfile.UpdateCommand(&command)
-			if err != nil {
-				LogErrorMessage(fmt.Sprintf("Updating command : %v", err))
-			} else {
-				LogInfoMessage(fmt.Sprintf("Update command in Parser : %s", command.Id))
-				devfile.ParsedSchemaObj.Data.UpdateCommand(command)
+		commands, parse_err := devfile.ParsedSchemaObj.Data.GetCommands(common.DevfileOptions{})
+		if parse_err != nil {
+			LogErrorMessage(fmt.Sprintf("Updating command : %v", parse_err))
+			err = parse_err
+		} else if len(commands) < 1 {
+			err = errors.New(LogErrorMessage("Updating command : No commands returned"))
+		} else {
+			for _, command := range commands {
+				err = devfile.UpdateCommand(&command)
+				if err != nil {
+					LogErrorMessage(fmt.Sprintf("Updating command : %v", err))
+				} else {
+					LogInfoMessage(fmt.Sprintf("Update command in Parser : %s", command.Id))
+					devfile.ParsedSchemaObj.Data.UpdateCommand(command)
+				}
 			}
+			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
+			devfile.ParsedSchemaObj.WriteYamlDevfile()
+			devfile.SchemaParsed = false
 		}
-		LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
-		devfile.ParsedSchemaObj.WriteYamlDevfile()
-		devfile.SchemaParsed = false
 	}
 	return err
 }
@@ -346,30 +386,103 @@ func (devfile TestDevfile) EditCommands() error {
 // EditComponents modifies random attributes for each of the components in the devfile.
 func (devfile TestDevfile) EditComponents() error {
 
-	LogInfoMessage(fmt.Sprintf("Edit %s : ", devfile.FileName))
+	LogInfoMessage(fmt.Sprintf("Edit components  %s : ", devfile.FileName))
 
 	err := devfile.parseSchema()
 	if err != nil {
 		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
 	} else {
-		LogInfoMessage(fmt.Sprintf(" -> Get commands %s : ", devfile.FileName))
-		components, _ := devfile.ParsedSchemaObj.Data.GetComponents(common.DevfileOptions{})
-		for _, component := range components {
-			err = devfile.UpdateComponent(&component)
-			if err != nil {
-				LogErrorMessage(fmt.Sprintf("Updating component : %v", err))
-			} else {
-				LogInfoMessage(fmt.Sprintf("Update component in Parser : %s", component.Name))
-				devfile.ParsedSchemaObj.Data.UpdateComponent(component)
+		LogInfoMessage(fmt.Sprintf(" -> Get components %s : ", devfile.FileName))
+		components, parse_err := devfile.ParsedSchemaObj.Data.GetComponents(common.DevfileOptions{})
+		if parse_err != nil {
+			LogErrorMessage(fmt.Sprintf("Updating component : %v", parse_err))
+			err = parse_err
+		} else if len(components) < 1 {
+			err = errors.New(LogErrorMessage("Updating component : No components returned"))
+		} else {
+			for _, component := range components {
+				err = devfile.UpdateComponent(&component)
+				if err != nil {
+					LogErrorMessage(fmt.Sprintf("Updating component : %v", err))
+				} else {
+					LogInfoMessage(fmt.Sprintf("Update component in Parser : %s", component.Name))
+					devfile.ParsedSchemaObj.Data.UpdateComponent(component)
+				}
 			}
+			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
+			devfile.ParsedSchemaObj.WriteYamlDevfile()
+			devfile.SchemaParsed = false
 		}
-		LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
-		devfile.ParsedSchemaObj.WriteYamlDevfile()
-		devfile.SchemaParsed = false
 	}
 	return err
 }
 
-func getError(message string) (string, error) {
-	return message, errors.New(message)
+// EditProjects modifies random attributes for each of the projects in the devfile.
+func (devfile TestDevfile) EditProjects() error {
+
+	LogInfoMessage(fmt.Sprintf("Edit project %s : ", devfile.FileName))
+
+	err := devfile.parseSchema()
+	if err != nil {
+		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
+	} else {
+		LogInfoMessage(fmt.Sprintf(" -> Get projects %s : ", devfile.FileName))
+		projects, parse_err := devfile.ParsedSchemaObj.Data.GetProjects(common.DevfileOptions{})
+		if parse_err != nil {
+			LogErrorMessage(fmt.Sprintf("Updating project : %v", parse_err))
+			err = parse_err
+		} else if len(projects) < 1 {
+			err = errors.New(LogErrorMessage("Updating project : No projects returned"))
+		} else {
+			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.",len(projects)))
+			for _, project := range projects {
+				err = devfile.UpdateProject(&project)
+				if err != nil {
+					LogErrorMessage(fmt.Sprintf("Updating project : %v", err))
+				} else {
+					LogInfoMessage(fmt.Sprintf("Update project in Parser : %s", project.Name))
+					devfile.ParsedSchemaObj.Data.UpdateProject(project)
+				}
+			}
+			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
+			devfile.ParsedSchemaObj.WriteYamlDevfile()
+			devfile.SchemaParsed = false
+		}
+	}
+	return err
+}
+
+// EditStarterProjects modifies random attributes for each of the starter projects in the devfile.
+func (devfile TestDevfile) EditStarterProjects() error {
+
+	LogInfoMessage(fmt.Sprintf("Edit starter project %s : ", devfile.FileName))
+
+	err := devfile.parseSchema()
+	if err != nil {
+		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
+	} else {
+		LogInfoMessage(fmt.Sprintf(" -> Get starter projects %s : ", devfile.FileName))
+		starterProjects, parse_err := devfile.ParsedSchemaObj.Data.GetStarterProjects(common.DevfileOptions{})
+		if parse_err != nil {
+			LogErrorMessage(fmt.Sprintf("Updating starter project : %v", parse_err))
+			err = parse_err
+		} else if len(starterProjects) < 1 {
+			err = errors.New(LogErrorMessage("Updating starter project : No starter projects returned"))
+		} else {
+			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.",len(starterProjects)))
+			for _, starterProject := range starterProjects {
+				err = devfile.UpdateStarterProject(&starterProject)
+				if err != nil {
+					LogErrorMessage(fmt.Sprintf("Updating starter project : %v", err))
+				} else {
+					LogInfoMessage(fmt.Sprintf("Update starter project in Parser : %s", starterProject.Name))
+					devfile.ParsedSchemaObj.Data.UpdateStarterProject(starterProject)
+				}
+			}
+			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
+			devfile.ParsedSchemaObj.WriteYamlDevfile()
+			devfile.SchemaParsed = false
+		}
+	}
+	return err
 }

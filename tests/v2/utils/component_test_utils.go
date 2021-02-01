@@ -36,6 +36,16 @@ func getSchemaComponent(components []schema.Component, name string) (*schema.Com
 	return &schemaComponent, found
 }
 
+// replaceSchemaCommand uses the specified command to replace the command in the schema structure with the same Id.
+func (devfile TestDevfile) replaceSchemaComponent(component schema.Component) {
+	for i := 0; i < len(devfile.SchemaDevFile.Components); i++ {
+		if devfile.SchemaDevFile.Components[i].Name == component.Name {
+			devfile.SchemaDevFile.Components[i] = component
+			break
+		}
+	}
+}
+
 // AddComponent adds a component of the specified type, with random attributes, to the devfile schema
 func (devfile *TestDevfile) AddComponent(componentType schema.ComponentType) string {
 	component := generateComponent(componentType)
@@ -92,7 +102,7 @@ func setContainerComponentValues(containerComponent *schema.ContainerComponent) 
 		containerComponent.Command = make([]string, numCommands)
 		for i := 0; i < numCommands; i++ {
 			containerComponent.Command[i] = GetRandomString(4+GetRandomNumber(10), false)
-			LogInfoMessage(fmt.Sprintf("....... command %d of %d : %s", i, numCommands, containerComponent.Command[i]))
+			LogInfoMessage(fmt.Sprintf("....... command %d of %d : %s", i+1, numCommands, containerComponent.Command[i]))
 		}
 	}
 
@@ -101,7 +111,7 @@ func setContainerComponentValues(containerComponent *schema.ContainerComponent) 
 		containerComponent.Args = make([]string, numArgs)
 		for i := 0; i < numArgs; i++ {
 			containerComponent.Args[i] = GetRandomString(8+GetRandomNumber(10), false)
-			LogInfoMessage(fmt.Sprintf("....... arg %d of %d : %s", i, numArgs, containerComponent.Args[i]))
+			LogInfoMessage(fmt.Sprintf("....... arg %d of %d : %s", i+1, numArgs, containerComponent.Args[i]))
 		}
 	}
 
@@ -159,10 +169,14 @@ func (devfile *TestDevfile) UpdateComponent(component *schema.Component) error {
 	testComponent, found := getSchemaComponent(devfile.SchemaDevFile.Components, component.Name)
 	if found {
 		LogInfoMessage(fmt.Sprintf("....... Updating component name: %s", component.Name))
-		if testComponent.ComponentType == schema.ContainerComponentType {
+		if testComponent.Container != nil {
 			setContainerComponentValues(component.Container)
-		} else if testComponent.ComponentType == schema.VolumeComponentType {
+			devfile.replaceSchemaComponent(*component)
+		} else if testComponent.Volume != nil {
 			setVolumeComponentValues(component.Volume)
+			devfile.replaceSchemaComponent(*component)
+		} else {
+			errorString = append(errorString, LogInfoMessage(fmt.Sprintf("....... Component is not of expected type.")))
 		}
 	} else {
 		errorString = append(errorString, LogInfoMessage(fmt.Sprintf("....... Component not found in test : %s", component.Name)))

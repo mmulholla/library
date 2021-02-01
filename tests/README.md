@@ -248,6 +248,9 @@ Using existing support for commands as an illustration, any new property support
             1. For each command call:
                 *  ```func (devfile *TestDevfile) UpdateCommand(command *schema.Command) error``` 
             1. When all commands have been updated, use parser to write the updated devfile to disk
+    * ```func (devfile *TestDevfile) CreateDevfile(useParser bool) error```
+        * specific to commands
+            1. use parser api to add commands to the parser.
 1. ```parser-v200-test.go```
     * ```type TestContent struct```
         * includes an array of command types: ```CommandTypes     []schema.CommandType``` 
