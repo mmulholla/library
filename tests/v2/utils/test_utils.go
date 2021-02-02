@@ -232,6 +232,9 @@ func (devfile *TestDevfile) CreateDevfile(useParser bool) error {
 			// add starter projects to the new devfile
 			newDevfile.AddStarterProjects(devfile.SchemaDevFile.StarterProjects)
 
+			// add starter projects to the new devfile
+			newDevfile.AddEvents(devfile.SchemaDevFile.Events)
+
 			ctx := devfileCtx.NewDevfileCtx(fileName)
 
 			err = ctx.SetAbsPath()
@@ -339,6 +342,18 @@ func (devfile TestDevfile) Verify() error {
 		} else {
 			LogInfoMessage(fmt.Sprintf("No starter projects found in %s : ", devfile.FileName))
 		}
+
+		LogInfoMessage(fmt.Sprintf("Get event %s : ", devfile.FileName))
+		events, _ := devfile.ParsedSchemaObj.Data.GetEvents(common.DevfileOptions{})
+		if events != nil {
+			err = devfile.VerifyEvents(events)
+			if err != nil {
+				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Events %s : %v", devfile.FileName, err)))
+			}
+		} else {
+			LogInfoMessage(fmt.Sprintf("No events found in %s : ", devfile.FileName))
+		}
+
 
 	}
 	var returnError error
@@ -478,6 +493,37 @@ func (devfile TestDevfile) EditStarterProjects() error {
 					LogInfoMessage(fmt.Sprintf("Update starter project in Parser : %s", starterProject.Name))
 					devfile.ParsedSchemaObj.Data.UpdateStarterProject(starterProject)
 				}
+			}
+			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
+			devfile.ParsedSchemaObj.WriteYamlDevfile()
+			devfile.SchemaParsed = false
+		}
+	}
+	return err
+}
+
+// EditStarterProjects modifies random attributes for each of the starter projects in the devfile.
+func (devfile TestDevfile) EditEvents() error {
+
+	LogInfoMessage(fmt.Sprintf("Edit Events %s : ", devfile.FileName))
+
+	err := devfile.parseSchema()
+	if err != nil {
+		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
+	} else {
+		LogInfoMessage(fmt.Sprintf(" -> Get Events %s : ", devfile.FileName))
+		events, parse_err := devfile.ParsedSchemaObj.Data.GetEvents(common.DevfileOptions{})
+		if parse_err != nil {
+			LogErrorMessage(fmt.Sprintf("Updating events : %v", parse_err))
+			err = parse_err
+		} else {
+			LogInfoMessage(fmt.Sprintf("Updating events."))
+			err = devfile.UpdateEvents(&events)
+			if err != nil {
+				LogErrorMessage(fmt.Sprintf("Updating events : %v", err))
+			} else {
+				LogInfoMessage(fmt.Sprintf("Update events in Parser : %s", starterProject.Name))
+				devfile.ParsedSchemaObj.Data.UpdateEvent(events.PreStart,events....)
 			}
 			LogInfoMessage(fmt.Sprintf("Write updated file to yaml : %s", devfile.FileName))
 			devfile.ParsedSchemaObj.WriteYamlDevfile()

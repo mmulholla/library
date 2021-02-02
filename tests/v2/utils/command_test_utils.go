@@ -61,6 +61,12 @@ func generateCommand(commandType schema.CommandType) schema.Command {
 		command.Exec = createExecCommand()
 	} else if commandType == schema.CompositeCommandType {
 		command.Composite = createCompositeCommand()
+	} else if commandType == schema.ApplyCommandType {
+		command.Apply = createApplyCommand()
+	} else if commandType == schema.VscodeTaskCommandType {
+		command.VscodeTask = createVscodeCommand()
+	} else if commandType == schema.VscodeLaunchCommandType {
+		command.VscodeLaunch = createVscodeCommand()
 	}
 	return command
 }
@@ -76,6 +82,12 @@ func (devfile *TestDevfile) UpdateCommand(parserCommand *schema.Command) error {
 			setExecCommandValues(parserCommand.Exec)
 		} else if testCommand.Composite != nil {
 			setCompositeCommandValues(parserCommand.Composite)
+		} else if testCommand.Apply != nil {
+			setApplyCommandValues(parserCommand.Apply)
+		} else if testCommand.VscodeTask != nil {
+			setVscodeCommandValues(parserCommand.VscodeTask)
+		} else if testCommand.VscodeLaunch != nil {
+			setVscodeCommandValues(parserCommand.VscodeLaunch)
 		}
 		devfile.replaceSchemaCommand(*parserCommand)
 	} else {
@@ -94,7 +106,7 @@ func createExecCommand() *schema.ExecCommand {
 
 }
 
-// setExecCommandValues randomly sets exec command attribute to random values
+// setExecCommandValues randomly sets exec command attributes to random values
 func setExecCommandValues(execCommand *schema.ExecCommand) {
 
 	execCommand.Component = GetRandomString(8, false)
@@ -167,7 +179,7 @@ func createCompositeCommand() *schema.CompositeCommand {
 	return &compositeCommand
 }
 
-// setCompositeCommandValues randomly sets composite command attribute to random values
+// setCompositeCommandValues randomly sets composite command attributes to random values
 func setCompositeCommandValues(compositeCommand *schema.CompositeCommand) {
 	numCommands := GetRandomNumber(3)
 
@@ -192,6 +204,56 @@ func setCompositeCommandValues(compositeCommand *schema.CompositeCommand) {
 	}
 }
 
+// createApplyCommand creates an apply command in a schema structure
+func createApplyCommand() *schema.ApplyCommand {
+
+	LogInfoMessage("Create a apply command :")
+	applyCommand := schema.ApplyCommand{}
+	setApplyCommandValues(&applyCommand)
+	return &applyCommand
+}
+
+// setApplyCommandValues randomly sets apply command attributes to random values
+func setApplyCommandValues(applyCommand *schema.ApplyCommand) {
+	applyCommand.Component = GetRandomUniqueString(GetRandomNumber(63),true)
+
+	if GetRandomDecision(2, 1) {
+		applyCommand.Group = addGroup()
+	}
+
+	if GetBinaryDecision() {
+		applyCommand.Label = GetRandomString(63, false)
+		LogInfoMessage(fmt.Sprintf("....... label: %s", applyCommand.Label))
+	}
+}
+
+// createVscodeCommand creates an vscode command in a schema structure
+func createVscodeCommand() *schema.VscodeConfigurationCommand {
+
+	LogInfoMessage("Create a vscode command :")
+	vscodeCommand := schema.VscodeConfigurationCommand{}
+	setVscodeCommandValues(&vscodeCommand)
+	return &vscodeCommand
+}
+
+// setVscodeCommandValues randomly sets vscode command attributes to random values
+func setVscodeCommandValues(vscodeCommand *schema.VscodeConfigurationCommand) {
+
+	if GetRandomDecision(2, 1) {
+		vscodeCommand.Group = addGroup()
+	}
+
+	if GetBinaryDecision() {
+		vscodeCommand.Uri = "http://"+GetRandomString(GetRandomNumber(24),false)
+		LogInfoMessage(fmt.Sprintf("....... uri: %s", vscodeCommand.Uri))
+		vscodeCommand.Inlined = ""
+	} else {
+		vscodeCommand.Inlined = GetRandomString(GetRandomNumber(12),false)
+		LogInfoMessage(fmt.Sprintf("....... inlined: %s", vscodeCommand.Inlined))
+		vscodeCommand.Uri = ""
+	}
+
+}
 // VerifyCommands verifies commands returned by the parser are the same as those saved in the devfile schema
 func (devfile TestDevfile) VerifyCommands(parserCommands []schema.Command) error {
 

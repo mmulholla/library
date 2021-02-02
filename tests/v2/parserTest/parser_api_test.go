@@ -113,9 +113,85 @@ func Test_CompositeCommandEditParserCreate(t *testing.T) {
 	runMultiThreadTest(testContent, t)
 }
 
+func Test_VscodeTaskCommand(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeTaskCommandType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeTaskCommandEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeTaskCommandType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeTaskCommandCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeTaskCommandType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeTaskCommandCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeTaskCommandType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeLaunchCommand(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeLaunchCommandType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeLaunchCommandEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeLaunchCommandType}
+	testContent.CreateWithParser = false
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeLaunchCommandCreateWithParser(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeLaunchCommandType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = false
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
+func Test_VscodeLaunchCommandCreateWithParserEdit(t *testing.T) {
+	testContent := TestContent{}
+	testContent.CommandTypes = []schema.CommandType{schema.VscodeLaunchCommandType}
+	testContent.CreateWithParser = true
+	testContent.EditContent = true
+	testContent.FileName = utils.GetDevFileName()
+	runTest(testContent, t)
+	runMultiThreadTest(testContent, t)
+}
 func Test_MultiCommand(t *testing.T) {
 	testContent := TestContent{}
-	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType}
+	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType,
+													schema.CompositeCommandType,
+													schema.ApplyCommandType,
+													schema.VscodeTaskCommandType,
+													schema.VscodeLaunchCommandType}
 	testContent.CreateWithParser = true
 	testContent.EditContent = true
 	testContent.FileName = utils.GetDevFileName()
@@ -475,10 +551,19 @@ func Test_StarterProjectAll(t *testing.T) {
 }
 func Test_Everything(t *testing.T) {
 	testContent := TestContent{}
-	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType}
-	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
-	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
-	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
+	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType,
+													schema.CompositeCommandType,
+													schema.ApplyCommandType,
+													schema.VscodeTaskCommandType,
+													schema.VscodeLaunchCommandType}
+	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType,
+														schema.VolumeComponentType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,
+														  schema.GitHubProjectSourceType,
+														  schema.ZipProjectSourceType}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,
+																 schema.GitHubProjectSourceType,
+																 schema.ZipProjectSourceType}
 	testContent.CreateWithParser = true
 	testContent.EditContent = true
 	testContent.FileName = utils.GetDevFileName()
