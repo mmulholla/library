@@ -1,0 +1,230 @@
+{
+    "SchemaVersion" : "2.0.0",
+    "SchemaURL" : "https://raw.githubusercontent.com/devfile/api/master/schemas/latest/ide-targeted/devfile.json",
+    "Tests" : [
+        {
+            "Label": "MixedCaseIdName",
+            "Parser_Message": "Does not match pattern",
+            "JSONSchema_Message": "does not match pattern",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\", \"component\" : \"thiscomponent\" }, \"id\" : \"MixedCaseCommandId\" } ] }",
+                "{ \"commands\": [ { \"apply\": { \"component\" : \"thiscomponent\" }, \"id\" : \"MixedCaseCommandId\" } ] }",
+                "{ \"commands\": [ { \"composite\": { \"label\":  \"labelled\" }, \"id\" : \"MixedCaseCommandId\" } ] }",
+                "{ \"commands\": [ { \"vscodeLaunch\": { \"uri\":  \"http://testingland\" }, \"id\" : \"MixedCaseCommandId\" } ] }",
+                "{ \"commands\": [ { \"vscodeTask\": { \"uri\":  \"http://testingland\" }, \"id\" : \"MixedCaseCommandId\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\":  \"http://testingiamge\" }, \"name\" : \"MixedCaseComponentName\" } ] }",
+                "{ \"components\": [ { \"volume\": { \"size\":  \"12G\" }, \"name\" : \"MixedCaseComponentName\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\":  \"http://testingland\" }, \"name\" : \"MixedCaseComponentName\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\":  \"http://testingland\" }, \"name\" : \"MixedCaseComponentName\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"MixedCaseEndpointName\", \"targetPort\": 8090 } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"MixedCaseEndpointName\", \"targetPort\": 8090 } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"MixedCaseEndpointName\", \"targetPort\": 8090 } ] }, \"name\" : \"openshiftname\" } ] }",
+                "{ \"projects\": [ { \"name\": \"MixedCaseName\", \"zip\": { \"location\": \"zipishere\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"MixedCaseName\", \"zip\": { \"location\": \"zipishere\" } } ] }"
+            ]
+        },
+        {
+            "Label": "MissingId",
+            "Parser_Message": "commands.0: id is required",
+            "JSONSchema_Message": "missing properties: \"id\"",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\", \"component\" : \"thiscomponent\" } } ] }",
+                "{ \"commands\": [ { \"apply\": { \"component\" : \"thiscomponent\" } } ] }",
+                "{ \"commands\": [ { \"composite\": { \"label\":  \"labelled\" } } ] }",
+                "{ \"commands\": [ { \"vscodeLaunch\": { \"uri\":  \"http://testingland\" } } ] }",
+                "{ \"commands\": [ { \"vscodeTask\": { \"uri\":  \"http://testingland\" } } ] }"
+            ]
+        },
+        {
+            "Label": "BadBooleanValue",
+            "Parser_Message": "Invalid type. Expected: boolean, given: string",
+            "JSONSchema_Message": "expected boolean, but got string",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\", \"component\" : \"thiscomponent\", \"group\": { \"isDefault\" : \"badBoolean\", \"kind\": \"test\" } }, \"id\" : \"execommandid\" } ] }",
+                "{ \"commands\": [ { \"apply\": { \"component\" : \"thiscomponent\", \"group\": { \"isDefault\" : \"badBoolean\", \"kind\": \"test\" } }, \"id\" : \"applyommandid\" } ] }",
+                "{ \"commands\": [ { \"composite\": { \"label\":  \"labelled\", \"group\": { \"isDefault\" : \"badBoolean\", \"kind\": \"test\" } }, \"id\" : \"compositecommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeLaunch\": { \"uri\":  \"http://testingland\", \"group\": { \"isDefault\" : \"badBoolean\", \"kind\": \"test\" } }, \"id\" : \"vslaunchcommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeTask\": { \"uri\":  \"http://testingland\", \"group\": { \"isDefault\" : \"badBoolean\", \"kind\": \"test\" } }, \"id\" : \"vstaskcommandid\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"secure\": \"badBoolean\" } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"secure\": \"badBoolean\" } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"secure\": \"badBoolean\" } ] }, \"name\" : \"openshiftname\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\":  \"http://testingimage\",\"dedicatedPod\": \"badBoolean\" }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\":  \"http://testingimage\",\"mountSources\": \"badBoolean\" }, \"name\" : \"containername\" } ] }"
+           ]
+        },
+        {
+            "Label": "BadGroupKind",
+            "Parser_Message": "group.kind must be one of the following: \"build\", \"run\", \"test\", \"debug\"",
+            "JSONSchema_Message": "value must be one of \"build\", \"run\", \"test\", \"debug\"",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\", \"component\" : \"thiscomponent\", \"group\": { \"kind\": \"compile\" } }, \"id\" : \"execommandid\" } ] }",
+                "{ \"commands\": [ { \"apply\": { \"component\" : \"thiscomponent\", \"group\": { \"kind\": \"compile\" } }, \"id\" : \"applyommandid\" } ] }",
+                "{ \"commands\": [ { \"composite\": { \"label\":  \"labelled\", \"group\": { \"kind\": \"compile\" } }, \"id\" : \"compositecommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeLaunch\": { \"uri\":  \"http://testingland\", \"group\": { \"kind\": \"compile\" } }, \"id\" : \"vslaunchcommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeTask\": { \"uri\":  \"http://testingland\", \"group\": { \"kind\": \"compile\" } }, \"id\" : \"vstaskcommandid\" } ] }"
+            ]
+        },
+        {
+            "Label": "MissingGroupKind",
+            "Parser_Message": "group: kind is required",
+            "JSONSchema_Message": "missing properties: \"kind\"",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\", \"component\" : \"thiscomponent\", \"group\": { \"isDefault\" : \"false\" } }, \"id\" : \"execommandid\" } ] }",
+                "{ \"commands\": [ { \"apply\": { \"component\" : \"thiscomponent\", \"group\": { \"isDefault\" : \"true\" } }, \"id\" : \"applyommandid\" } ] }",
+                "{ \"commands\": [ { \"composite\": { \"label\":  \"labelled\", \"group\": { \"isDefault\" : \"false\" } }, \"id\" : \"compositecommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeLaunch\": { \"uri\":  \"http://testingland\", \"group\": { \"isDefault\" : \"true\" } }, \"id\" : \"vslaunchcommandid\" } ] }",
+                "{ \"commands\": [ { \"vscodeTask\": { \"uri\":  \"http://testingland\", \"group\": { \"isDefault\" : \"false\" } }, \"id\" : \"vstaskcommandid\" } ] }"
+            ]
+        },
+        {
+            "Label": "MissingName",
+            "Parser_Message": "name is required",
+            "JSONSchema_Message": "missing properties: \"name\"",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\":  \"http://testingiamge\" } } ] }",
+                "{ \"components\": [ { \"volume\": { \"size\":  \"16G\" } } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\":  \"http://testingland\" } } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\":  \"http://testingland\" } } ] }",
+                "{ \"projects\": [ { \"zip\": { \"location\": \"zipishere\" } } ] }",
+                "{ \"starterProjects\": [ { \"zip\": { \"location\": \"zipishere\" } } ] }"
+            ]
+        },
+        {
+            "Label": "NoComponent",
+            "Parser_Message": "component is required",
+            "JSONSchema_Message": "missing properties: \"component\"",
+            "Yaml": [
+                "{ \"commands\": [ { \"exec\": { \"commandLine\":  \"doThis\" }, \"id\" : \"execcommandid\" } ] }",
+                "{ \"commands\": [ { \"apply\": { \"label\":  \"labelled\" }, \"id\" : \"applycommandid\" } ] }"
+            ]
+        },
+        {
+            "Label": "BadEndpointExposure",
+            "Parser_Message": "exposure must be one of the following: \"public\", \"internal\", \"none\"",
+            "JSONSchema_Message": "value must be one of \"public\", \"internal\", \"none\"",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"exposure\": \"everywhere\" } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"exposure\": \"everywhere\" } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"exposure\": \"everywhere\" } ] }, \"name\" : \"openshiftname\" } ] }"
+            ]
+        },
+        {
+            "Label": "BadEndpointProtocol",
+            "Parser_Message": "protocol must be one of the following: \"http\", \"https\", \"ws\", \"wss\", \"tcp\", \"udp\"",
+            "JSONSchema_Message": "value must be one of \"http\", \"https\", \"ws\", \"wss\", \"tcp\", \"udp\"",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"protocol\": \"hppts\" } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"protocol\": \"hppts\" } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090, \"protocol\": \"hppts\" } ] }, \"name\" : \"openshiftname\" } ] }"
+            ]
+        },
+        {
+            "Label": "LongName",
+            "Parser_Message": "String length must be less than or equal to 63",
+            "JSONSchema_Message": "length must be <= 63",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\" }, \"name\" : \"this-invalid-component-container-name-is-more-than-63-characters-long\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\" }, \"name\" : \"this-invalid-component-kubernetes-name-is-more-than-63-characters-long\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\" }, \"name\" : \"this-invalid-component-openshift-name-is-more-than-63-characters-long\" } ] }",
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"this-invalid-container-endpoint-name-is-more-than-63-characters-long\", \"targetPort\": 8090 } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"this-invalid-container-endpoint-name-is-more-than-63-characters-long\", \"targetPort\": 8090 } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"this-invalid-container-endpoint-name-is-more-than-63-characters-long\", \"targetPort\": 8090 } ] }, \"name\" : \"openshiftname\" } ] }",
+                "{ \"projects\": [ { \"name\": \"this-invalid-project-project-project-name-is-more-than-63-characters-long\", \"zip\": { \"location\": \"zipishere\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"this-invalid-starter-project-project-name-is-more-than-63-characters-long\", \"zip\": { \"location\": \"zipishere\" } } ] }"
+            ]
+        },
+        {
+            "Label": "EndpointMissingName",
+            "Parser_Message": "endpoints.0: name is required",
+            "JSONSchema_Message": "missing properties: \"name\"",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"targetPort\": 8090 } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"targetPort\": 8090 } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"targetPort\": 8090 } ] }, \"name\" : \"openshiftname\" } ] }"
+            ]
+        },
+        {
+            "Label": "EndpointMissingPort",
+            "Parser_Message": "endpoints.0: targetPort is required",
+            "JSONSchema_Message": "missing properties: \"targetPort\"",
+            "Yaml": [
+                "{ \"components\": [ { \"container\": { \"image\": \"http://testingimage\", \"endpoints\": [ { \"name\": \"endpointname\" } ] }, \"name\" : \"containername\" } ] }",
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\" } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"endpoints\": [ { \"name\": \"endpointname\" } ] }, \"name\" : \"openshiftname\" } ] }"
+            ]
+        },
+        {
+            "Label": "TwoOfOneOf",
+            "Parser_Message": "Must validate one and only one schema (oneOf)",
+            "JSONSchema_Message": "valid against schemas at indexes",
+            "Yaml": [
+                "{ \"components\": [ { \"kubernetes\": { \"uri\": \"http://testingland\", \"inlined\": \"mymanifest\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090 } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"uri\": \"http://testingland\", \"inlined\": \"mymanifest\", \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090 } ] }, \"name\" : \"openshiftname\" } ] }",
+                "{ \"projects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } } } ] }",
+                "{ \"projects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
+                "{ \"projects\": [ { \"name\": \"projectname\", \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
+                "{ \"parent\": { \"id\": \"TestParent\", \"kubernetes\": { \"name\": \"kubernetes\" } }"
+            ]
+        },
+        {
+            "Label": "NoInlinedOrUri",
+            "Parser_Message": "uri is required",
+            "JSONSchema_Message": "oneOf failed",
+            "Yaml": [
+                "{ \"components\": [ { \"kubernetes\": { \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090 } ] }, \"name\" : \"kubernetesname\" } ] }",
+                "{ \"components\": [ { \"openshift\": { \"endpoints\": [ { \"name\": \"endpointname\", \"targetPort\": 8090 } ] }, \"name\" : \"openshiftname\" } ] }"
+            ]
+        },
+        {
+            "Label": "EventInvalid",
+            "Parser_Message": "Additional property invalidStep is not allowed",
+            "JSONSchema_Message": "additionalProperties \"invalidStep\" not allowed",
+            "Yaml": [
+                "{ \"events\": { \"invalidStep\": [ \"command1\" ] } }"
+            ]
+        },
+        {
+            "Label": "EventEmpty",
+            "Parser_Message": "Invalid type. Expected: array, given: null",
+            "JSONSchema_Message": "expected array, but got null",
+            "Yaml": [
+                "{ \"events\": { \"preStart\": } }",
+                "{ \"events\": { \"postStart\": } }",
+                "{ \"events\": { \"preStop\": } }",
+                "{ \"events\": { \"preStop\": } }"
+            ]
+        },
+        {
+            "Label": "ProjectNoRemotes",
+            "Parser_Message": "remotes is required",
+            "JSONSchema_Message": "missing properties: \"remotes\"",
+            "Yaml": [
+                "{ \"projects\": [ { \"name\": \"projectname\", \"git\": { \"checkoutFrom\": \"origin\" } } ] }",
+                "{ \"projects\": [ { \"name\": \"projectname\", \"github\": { \"checkoutFrom\": \"origin\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"git\": { \"checkoutFrom\": \"origin\" } } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"github\": { \"checkoutFrom\": \"origin\" } } ] }"
+            ]
+        },
+        {
+            "Label": "ProjectZipNoLocation",
+            "Parser_Message": "Expected: object, given: null",
+            "JSONSchema_Message": "expected object, but got null",
+            "Yaml": [
+                "{ \"projects\": [ { \"name\": \"projectname\", \"zip\": } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\", \"zip\": } ] }"
+            ]
+        },
+        {
+            "Label": "ProjectNoGitOrZipOrGithub",
+            "Parser_Message": "git is required",
+            "JSONSchema_Message": "missing properties: \"git\"",
+            "Yaml": [
+                "{ \"projects\": [ { \"name\": \"projectname\" } ] }",
+                "{ \"starterProjects\": [ { \"name\": \"projectname\" } ] }"
+            ]
+        }
+    ]
+}

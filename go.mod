@@ -14,6 +14,7 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
 	github.com/pkg/errors v0.9.1
+	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/spf13/afero v1.2.2
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0

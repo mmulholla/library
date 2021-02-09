@@ -26,13 +26,13 @@ const (
 
 // TestContent - structure used by a test to configure the tests to run
 type TestContent struct {
-	CommandTypes          	[]schema.CommandType
-	ComponentTypes   		[]schema.ComponentType
-	ProjectTypes     		[]schema.ProjectSourceType
-	StarterProjectTypes 	[]schema.ProjectSourceType
-	FileName         		string
-	CreateWithParser 		bool
-	EditContent      		bool
+	CommandTypes        []schema.CommandType
+	ComponentTypes      []schema.ComponentType
+	ProjectTypes        []schema.ProjectSourceType
+	StarterProjectTypes []schema.ProjectSourceType
+	FileName            string
+	CreateWithParser    bool
+	EditContent         bool
 }
 
 func Test_ExecCommand(t *testing.T) {
@@ -423,7 +423,6 @@ func Test_GithubStarterProjectCreateWithParserEdit(t *testing.T) {
 	runMultiThreadTest(testContent, t)
 }
 
-
 func Test_ZipStarterProject(t *testing.T) {
 	testContent := TestContent{}
 	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.ZipProjectSourceType}
@@ -477,14 +476,15 @@ func Test_Everything(t *testing.T) {
 	testContent := TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType}
 	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
-	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
-	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType,schema.GitHubProjectSourceType,schema.ZipProjectSourceType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType, schema.GitHubProjectSourceType, schema.ZipProjectSourceType}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{schema.GitProjectSourceType, schema.GitHubProjectSourceType, schema.ZipProjectSourceType}
 	testContent.CreateWithParser = true
 	testContent.EditContent = true
 	testContent.FileName = utils.GetDevFileName()
 	runTest(testContent, t)
 	runMultiThreadTest(testContent, t)
 }
+
 // runMultiThreadTest : Runs the same test on multiple threads, the test is based on the content of the specified TestContent
 func runMultiThreadTest(testContent TestContent, t *testing.T) {
 
@@ -573,7 +573,6 @@ func runTest(testContent TestContent, t *testing.T) {
 				t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("ERROR editing starter projects :  %s : %v", testContent.FileName, err)))
 			}
 		}
-
 
 	}
 

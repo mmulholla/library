@@ -136,7 +136,7 @@ var RndSeed int64 = time.Now().UnixNano()
 // If lower is set to true a lower case string is returned.
 func GetRandomUniqueString(n int, lower bool) string {
 	StringCount++
-	countAsString := fmt.Sprintf("%05d",StringCount)
+	countAsString := fmt.Sprintf("%05d", StringCount)
 	if n < len(countAsString) {
 		n += len(countAsString)
 	}
@@ -280,6 +280,17 @@ func (devfile *TestDevfile) parseSchema() error {
 			LogErrorMessage(fmt.Sprintf("From ParseAndValidate %v : ", err))
 		}
 		devfile.SchemaParsed = true
+
+		var schemaFile *SchemaFile
+		schemaFile, err = GetSchema("https://raw.githubusercontent.com/devfile/api/master/schemas/latest/ide-targeted/devfile.json")
+		if err != nil {
+			LogErrorMessage(fmt.Sprintf("Failed to get devfile schema : %v", err))
+		} else {
+			err = schemaFile.CheckWithSchema(devfile.FileName, "")
+			if err != nil {
+				LogErrorMessage(fmt.Sprintf("Verification with devfile schema failed : %v", err))
+			}
+		}
 	}
 	return err
 }
@@ -434,7 +445,7 @@ func (devfile TestDevfile) EditProjects() error {
 		} else if len(projects) < 1 {
 			err = errors.New(LogErrorMessage("Updating project : No projects returned"))
 		} else {
-			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.",len(projects)))
+			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.", len(projects)))
 			for _, project := range projects {
 				err = devfile.UpdateProject(&project)
 				if err != nil {
@@ -469,7 +480,7 @@ func (devfile TestDevfile) EditStarterProjects() error {
 		} else if len(starterProjects) < 1 {
 			err = errors.New(LogErrorMessage("Updating starter project : No starter projects returned"))
 		} else {
-			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.",len(starterProjects)))
+			LogInfoMessage(fmt.Sprintf("Updating project : %d projects found.", len(starterProjects)))
 			for _, starterProject := range starterProjects {
 				err = devfile.UpdateStarterProject(&starterProject)
 				if err != nil {

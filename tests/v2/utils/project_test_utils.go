@@ -15,9 +15,9 @@ func getRemotes() map[string]string {
 	remotes := make(map[string]string)
 	numRemotes := GetRandomNumber(5)
 	for i := 0; i < numRemotes; i++ {
-		key := GetRandomUniqueString(8,false)
-		remotes[key] = GetRandomUniqueString(8,false)
-		LogInfoMessage(fmt.Sprintf("Set remote key= %s, value= %s",key,remotes[key]))
+		key := GetRandomUniqueString(8, false)
+		remotes[key] = GetRandomUniqueString(8, false)
+		LogInfoMessage(fmt.Sprintf("Set remote key= %s, value= %s", key, remotes[key]))
 	}
 	return remotes
 }
@@ -36,7 +36,6 @@ func (devfile *TestDevfile) AddStarterProject(projectType schema.ProjectSourceTy
 	return project.Name
 }
 
-
 // generateProject creates a project of a specified type in a schema project structure
 func generateProject(projectType schema.ProjectSourceType) schema.Project {
 	project := schema.Project{}
@@ -54,7 +53,6 @@ func generateProject(projectType schema.ProjectSourceType) schema.Project {
 	}
 	return project
 }
-
 
 // generateStarterProject creates a starter project of a specified type in a schema starter project structure
 func generateStarterProject(projectType schema.ProjectSourceType) schema.StarterProject {
@@ -77,21 +75,21 @@ func generateStarterProject(projectType schema.ProjectSourceType) schema.Starter
 
 // createGitProject creates a git project structure a loads it with random attributes
 func createGitProject() *schema.GitProjectSource {
-	project :=  schema.GitProjectSource{}
+	project := schema.GitProjectSource{}
 	setGitProjectValues(&project)
 	return &project
 }
 
 // createGithubProject creates a github project structure a loads it with random attributes
 func createGithubProject() *schema.GithubProjectSource {
-	project :=  schema.GithubProjectSource{}
+	project := schema.GithubProjectSource{}
 	setGithubProjectValues(&project)
 	return &project
 }
 
 // createZipProject creates a zip project structure a loads it with random attributes
 func createZipProject() *schema.ZipProjectSource {
-	project :=  schema.ZipProjectSource{}
+	project := schema.ZipProjectSource{}
 	setZipProjectValues(&project)
 	return &project
 }
@@ -99,16 +97,16 @@ func createZipProject() *schema.ZipProjectSource {
 // setProjectCommonValues sets project attributes, common to all projects, to random values.
 func setProjectCommonValues(project *schema.Project) {
 	if GetBinaryDecision() {
-		project.ClonePath = "./" + GetRandomString(GetRandomNumber(12),false)
-		LogInfoMessage(fmt.Sprintf("Set ClonePath : %s",project.ClonePath))
+		project.ClonePath = "./" + GetRandomString(GetRandomNumber(12), false)
+		LogInfoMessage(fmt.Sprintf("Set ClonePath : %s", project.ClonePath))
 	}
 
 	if GetBinaryDecision() {
 		var sparseCheckoutDirs []string
 		numDirs := GetRandomNumber(6)
 		for i := 0; i < numDirs; i++ {
-			sparseCheckoutDirs = append(sparseCheckoutDirs,GetRandomString(8,false))
-			LogInfoMessage(fmt.Sprintf("Set sparseCheckoutDir : %s",sparseCheckoutDirs[i]))
+			sparseCheckoutDirs = append(sparseCheckoutDirs, GetRandomString(8, false))
+			LogInfoMessage(fmt.Sprintf("Set sparseCheckoutDir : %s", sparseCheckoutDirs[i]))
 		}
 		project.SparseCheckoutDirs = sparseCheckoutDirs
 	}
@@ -118,18 +116,18 @@ func setProjectCommonValues(project *schema.Project) {
 func setStarterProjectCommonValues(project *schema.StarterProject) {
 	if GetBinaryDecision() {
 		numWords := GetRandomNumber(6)
-		for i := 0 ; i < numWords ; i++ {
+		for i := 0; i < numWords; i++ {
 			if i > 0 {
 				project.Description += " "
 			}
-			project.Description +=  GetRandomString(8, false)
+			project.Description += GetRandomString(8, false)
 		}
-		LogInfoMessage(fmt.Sprintf("Set Description : %s",project.Description))
+		LogInfoMessage(fmt.Sprintf("Set Description : %s", project.Description))
 	}
 
 	if GetBinaryDecision() {
-		project.SubDir = GetRandomString(12,false)
-		LogInfoMessage(fmt.Sprintf("Set SubDir : %s",project.SubDir))
+		project.SubDir = GetRandomString(12, false)
+		LogInfoMessage(fmt.Sprintf("Set SubDir : %s", project.SubDir))
 	}
 
 }
@@ -140,13 +138,13 @@ func setGitProjectValues(gitProject *schema.GitProjectSource) {
 	gitProject.Remotes = getRemotes()
 	if len(gitProject.Remotes) > 1 {
 		numKey := GetRandomNumber(len(gitProject.Remotes))
-		for key,_ := range gitProject.Remotes {
+		for key, _ := range gitProject.Remotes {
 			numKey--
 			if numKey <= 0 {
 				gitProject.CheckoutFrom = &schema.CheckoutFrom{}
 				gitProject.CheckoutFrom.Remote = key
-				gitProject.CheckoutFrom.Revision = GetRandomString(8,false)
-				LogInfoMessage(fmt.Sprintf("set CheckoutFrom remote = %s, and revision = %s",gitProject.CheckoutFrom.Remote,gitProject.CheckoutFrom.Revision))
+				gitProject.CheckoutFrom.Revision = GetRandomString(8, false)
+				LogInfoMessage(fmt.Sprintf("set CheckoutFrom remote = %s, and revision = %s", gitProject.CheckoutFrom.Remote, gitProject.CheckoutFrom.Revision))
 				break
 			}
 		}
@@ -159,13 +157,13 @@ func setGithubProjectValues(githubProject *schema.GithubProjectSource) {
 	githubProject.Remotes = getRemotes()
 	if len(githubProject.Remotes) > 1 {
 		numKey := GetRandomNumber(len(githubProject.Remotes))
-		for key,_ := range githubProject.Remotes {
+		for key, _ := range githubProject.Remotes {
 			numKey--
 			if numKey <= 0 {
 				githubProject.CheckoutFrom = &schema.CheckoutFrom{}
 				githubProject.CheckoutFrom.Remote = key
-				githubProject.CheckoutFrom.Revision = GetRandomString(8,false)
-				LogInfoMessage(fmt.Sprintf("set CheckoutFrom remote = %s, and revision = %s",githubProject.CheckoutFrom.Remote,githubProject.CheckoutFrom.Revision))
+				githubProject.CheckoutFrom.Revision = GetRandomString(8, false)
+				LogInfoMessage(fmt.Sprintf("set CheckoutFrom remote = %s, and revision = %s", githubProject.CheckoutFrom.Remote, githubProject.CheckoutFrom.Revision))
 				break
 			}
 		}
@@ -174,7 +172,7 @@ func setGithubProjectValues(githubProject *schema.GithubProjectSource) {
 
 // ssetZipProjectValues randomly sets attributes for a Zip Project
 func setZipProjectValues(zipProject *schema.ZipProjectSource) {
-	zipProject.Location = GetRandomString(12,false)
+	zipProject.Location = GetRandomString(12, false)
 }
 
 // getSchemaProject get a Project from the saved devfile schema structure
