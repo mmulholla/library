@@ -278,6 +278,8 @@ func (devfile *TestDevfile) parseSchema() error {
 		devfile.ParsedSchemaObj, err = devfilepkg.ParseAndValidate(devfile.FileName)
 		if err != nil {
 			LogErrorMessage(fmt.Sprintf("From ParseAndValidate %v : ", err))
+		} else {
+			LogInfoMessage(fmt.Sprintf("Devfile validated using parser : %s", devfile.FileName))
 		}
 		devfile.SchemaParsed = true
 
@@ -289,6 +291,8 @@ func (devfile *TestDevfile) parseSchema() error {
 			err = schemaFile.CheckWithSchema(devfile.FileName, "")
 			if err != nil {
 				LogErrorMessage(fmt.Sprintf("Verification with devfile schema failed : %v", err))
+			} else {
+				LogInfoMessage(fmt.Sprintf("Devfile validated using JSONSchema schema : %s", devfile.FileName))
 			}
 		}
 	}

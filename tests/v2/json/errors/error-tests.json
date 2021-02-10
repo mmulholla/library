@@ -166,7 +166,7 @@
                 "{ \"starterProjects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } } } ] }",
                 "{ \"starterProjects\": [ { \"name\": \"projectname\", \"git\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
                 "{ \"starterProjects\": [ { \"name\": \"projectname\", \"github\": { \"remotes\": { \"origin\": \"camefromhere\" } }, \"zip\": { \"loaction\": \"zipishere\" } } ] }",
-                "{ \"parent\": { \"id\": \"TestParent\", \"kubernetes\": { \"name\": \"kubernetes\" } }"
+                "{ \"parent\": { \"id\": \"TestParent\", \"kubernetes\": { \"name\": \"kubernetes\" } } }"
             ]
         },
         {

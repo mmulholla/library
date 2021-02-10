@@ -16,7 +16,6 @@ import (
 
 const (
 	jsonDir      = "../json/errors/"
-	logErrorOnly = false
 )
 
 type TestToRun struct {
@@ -108,9 +107,9 @@ func Test_ErrorsInDevfiles(t *testing.T) {
 	}
 
 	for _, jsonFile := range jsonFiles {
-		tests, error := jsonFile.GetTests()
-		if error != nil {
-			t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("An error occurred reading test from json content from : %v", error)))
+		tests, getError := jsonFile.GetTests()
+		if getError != nil {
+			t.Fatalf(utils.LogErrorMessage(fmt.Sprintf("An error occurred reading test from json content from : %v", getError)))
 		}
 		for _, test := range tests {
 			utils.LogInfoMessage("--------------------------")
