@@ -1,4 +1,4 @@
-package utils
+package api
 
 import (
 	"errors"
@@ -10,7 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	schema "github.com/devfile/api/v2/pkg/apis/workspaces/v1alpha2"
@@ -35,6 +37,25 @@ var tmpDir string
 var (
 	testLogger *log.Logger
 )
+
+type SchemaWriter interface {
+	AddCommand(schema.Command) error
+	UpdateCommand(schema.Command) error
+	AddComponent(schema.Component) error
+	UpdateComponent(schema.Component) error
+}
+
+type SchemaValidator interface {
+	WriteAndVerify(TestDevfile) (string,error)
+}
+
+// TestContent - structure used by a test to configure the tests to run
+type TestContent struct {
+	CommandTypes   []schema.CommandType
+	ComponentTypes []schema.ComponentType
+	FileName       string
+	EditContent    bool
+}
 
 // init creates:
 //    - the temporary directory used by the test to store logs and generated devfiles.
@@ -140,10 +161,11 @@ func LogInfoMessage(message string) string {
 type TestDevfile struct {
 	SchemaDevFile schema.Devfile
 	FileName      string
-	ParserData    devfileData.DevfileData
 	SchemaParsed  bool
 	GroupDefaults map[schema.CommandGroupKind]bool
 	UsedPorts     map[int]bool
+	Writer        *SchemaWriter
+	Validator     *SchemaValidator
 }
 
 var StringCount int = 0
@@ -206,7 +228,7 @@ func GetRandomNumber(max int) int {
 }
 
 // GetDevfile returns a structure used to represent a specific devfile in a test
-func GetDevfile(fileName string) (TestDevfile, error) {
+func GetDevfile(fileName string, writer *SchemaWriter, validator *SchemaValidator) (TestDevfile, error) {
 
 	var err error
 	testDevfile := TestDevfile{}
@@ -218,147 +240,10 @@ func GetDevfile(fileName string) (TestDevfile, error) {
 	for _, kind := range GroupKinds {
 		testDevfile.GroupDefaults[kind] = false
 	}
-	testDevfile.ParserData, err = devfileData.NewDevfileData(testDevfile.SchemaDevFile.SchemaVersion)
-	if err != nil {
-		return testDevfile, err
-	}
-	testDevfile.ParserData.SetSchemaVersion(testDevfile.SchemaDevFile.SchemaVersion)
 	testDevfile.UsedPorts = make(map[int]bool)
+	testDevfile.Writer = writer
+	testDevfile.Validator = validator
 	return testDevfile, err
-}
-
-// WriteDevfile create a devifle on disk for use in a test.
-// If useParser is true the parser library is used to generate the file, otherwise "sigs.k8s.io/yaml" is used.
-func (devfile *TestDevfile) WriteDevfile(useParser bool) error {
-	var err error
-
-	fileName := devfile.FileName
-	if !strings.HasSuffix(fileName, ".yaml") {
-		fileName += ".yaml"
-	}
-
-	if useParser {
-		LogInfoMessage(fmt.Sprintf("Use Parser to write devfile %s", fileName))
-
-		ctx := devfileCtx.NewDevfileCtx(fileName)
-
-		err = ctx.SetAbsPath()
-		if err != nil {
-			LogErrorMessage(fmt.Sprintf("Setting devfile path : %v", err))
-		} else {
-			devObj := parser.DevfileObj{
-				Ctx:  ctx,
-				Data: devfile.ParserData,
-			}
-			err = devObj.WriteYamlDevfile()
-			if err != nil {
-				LogErrorMessage(fmt.Sprintf("Writing devfile : %v", err))
-			} else {
-				devfile.SchemaParsed = false
-			}
-		}
-
-	} else {
-		LogInfoMessage(fmt.Sprintf("Marshall and write devfile %s", devfile.FileName))
-		c, marshallErr := yaml.Marshal(&(devfile.SchemaDevFile))
-
-		if marshallErr != nil {
-			err = errors.New(LogErrorMessage(fmt.Sprintf("Marshall devfile %s : %v", devfile.FileName, marshallErr)))
-		} else {
-			err = ioutil.WriteFile(fileName, c, 0644)
-			if err != nil {
-				LogErrorMessage(fmt.Sprintf("Write devfile %s : %v", devfile.FileName, err))
-			} else {
-				devfile.SchemaParsed = false
-			}
-		}
-	}
-	return err
-}
-
-// parseSchema uses the parser to parse a devfile on disk
-func (devfile *TestDevfile) parseSchema() error {
-
-	var err error
-	if !devfile.SchemaParsed {
-		err = devfile.WriteDevfile(true)
-		if err != nil {
-			LogErrorMessage(fmt.Sprintf("From WriteDevfile %v : ", err))
-		} else {
-			LogInfoMessage(fmt.Sprintf("Parse and Validate %s : ", devfile.FileName))
-			parsedSchemaObj, parse_err := devfilepkg.ParseAndValidate(devfile.FileName)
-			if parse_err != nil {
-				err = parse_err
-				LogErrorMessage(fmt.Sprintf("From ParseAndValidate %v : ", err))
-			}
-			devfile.SchemaParsed = true
-			devfile.ParserData = parsedSchemaObj.Data
-		}
-	}
-	return err
-}
-
-// Verify verifies the contents of the specified devfile with the expected content
-func (devfile *TestDevfile) Verify() error {
-
-	LogInfoMessage(fmt.Sprintf("Verify %s : ", devfile.FileName))
-
-	var errorString []string
-
-	err := devfile.parseSchema()
-
-	if err != nil {
-		errorString = append(errorString, LogErrorMessage(fmt.Sprintf("parsing schema %s : %v", devfile.FileName, err)))
-	} else {
-		LogInfoMessage(fmt.Sprintf("Get commands %s : ", devfile.FileName))
-		commands, _ := devfile.ParserData.GetCommands(common.DevfileOptions{})
-		if commands != nil && len(commands) > 0 {
-			err = devfile.VerifyCommands(commands)
-			if err != nil {
-				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Commands %s : %v", devfile.FileName, err)))
-			}
-		} else {
-			LogInfoMessage(fmt.Sprintf("No command found in %s : ", devfile.FileName))
-		}
-
-		LogInfoMessage(fmt.Sprintf("Get components %s : ", devfile.FileName))
-		components, _ := devfile.ParserData.GetComponents(common.DevfileOptions{})
-		if components != nil && len(components) > 0 {
-			err = devfile.VerifyComponents(components)
-			if err != nil {
-				errorString = append(errorString, LogErrorMessage(fmt.Sprintf("Verfify Commands %s : %v", devfile.FileName, err)))
-			}
-		} else {
-			LogInfoMessage(fmt.Sprintf("No components found in %s : ", devfile.FileName))
-		}
-	}
-	var returnError error
-	if len(errorString) > 0 {
-		returnError = errors.New(fmt.Sprint(errorString))
-	}
-	return returnError
-
-}
-
-// EditCommands modifies random attributes for each of the commands in the devfile.
-func (devfile *TestDevfile) EditCommands() error {
-
-	LogInfoMessage(fmt.Sprintf("Edit %s : ", devfile.FileName))
-
-	err := devfile.parseSchema()
-	if err != nil {
-		LogErrorMessage(fmt.Sprintf("From parser : %v", err))
-	} else {
-		LogInfoMessage(fmt.Sprintf(" -> Get commands %s : ", devfile.FileName))
-		commands, _ := devfile.ParserData.GetCommands(common.DevfileOptions{})
-		for _, command := range commands {
-			err = devfile.UpdateCommand(command.Id)
-			if err != nil {
-				LogErrorMessage(fmt.Sprintf("Updating command : %v", err))
-			}
-		}
-	}
-	return err
 }
 
 // EditComponents modifies random attributes for each of the components in the devfile.
@@ -380,4 +265,38 @@ func (devfile *TestDevfile) EditComponents() error {
 		}
 	}
 	return err
+}
+
+
+// runTest : Runs a test beased on the content of the specified TestContent
+func runTest(testContent TestContent, t *testing.T) {
+
+	LogMessage(fmt.Sprintf("Start test for %s", testContent.FileName))
+	testDevfile, err := GetDevfile(testContent.FileName)
+	if err != nil {
+		t.Fatalf(utils.LogMessage(fmt.Sprintf("Error creating devfile : %v", err)))
+	}
+
+	if len(testContent.CommandTypes) > 0 {
+		numCommands := GetRandomNumber(maxCommands)
+		for i := 0; i < numCommands; i++ {
+			commandIndex := GetRandomNumber(len(testContent.CommandTypes))
+			testDevfile.AddCommand(testContent.CommandTypes[commandIndex-1])
+		}
+	}
+
+	if len(testContent.ComponentTypes) > 0 {
+		numComponents := GetRandomNumber(maxComponents)
+		for i := 0; i < numComponents; i++ {
+			componentIndex := utils.GetRandomNumber(len(testContent.ComponentTypes))
+			testDevfile.AddComponent(testContent.ComponentTypes[componentIndex-1])
+		}
+	}
+
+	err = testDevfile.Validator.WriteAndVerify(testDevfile)
+	if err != nil {
+		t.Fatalf(LogErrorMessage(fmt.Sprintf("ERROR creating devfile :  %s : %v", testContent.FileName, err)))
+	}
+
+
 }
