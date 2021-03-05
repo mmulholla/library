@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	schema "github.com/devfile/api/v2/pkg/apis/workspaces/v1alpha2"
-	commonUtils "github.com/devfile/api/v2/test/v200/utils/common"
+	commonUtils "github.com/devfile/library/tests/v2/utils/common"
 )
 
 // getSchemaCommand get a specified command from the devfile schema structure

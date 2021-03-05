@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	schema "github.com/devfile/api/v2/pkg/apis/workspaces/v1alpha2"
-	commonUtils "github.com/devfile/api/v2/test/v200/utils/common"
+	commonUtils "github.com/devfile/library/tests/v2/utils/common"
 	libraryUtils "github.com/devfile/library/tests/v2/utils/library"
 )
 
@@ -16,59 +16,59 @@ type TestContent struct {
 	EditContent    bool
 }
 
-func Test_ExecCommand(t *testing.T) {
+func Best_ExecCommand(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType}
 	testContent.EditContent = false
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
-func Test_ExecCommandEdit(t *testing.T) {
+func Best_ExecCommandEdit(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_ApplyCommand(t *testing.T) {
+func Best_ApplyCommand(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ApplyCommandType}
 	testContent.EditContent = false
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_ApplyCommandEdit(t *testing.T) {
+func Best_ApplyCommandEdit(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ApplyCommandType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_CompositeCommand(t *testing.T) {
+func Best_CompositeCommand(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.CompositeCommandType}
 	testContent.EditContent = false
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
-func Test_CompositeCommandEdit(t *testing.T) {
+func Best_CompositeCommandEdit(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.CompositeCommandType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_MultiCommand(t *testing.T) {
+func Best_MultiCommand(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType,
 		schema.CompositeCommandType,
@@ -76,60 +76,87 @@ func Test_MultiCommand(t *testing.T) {
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_ContainerComponent(t *testing.T) {
+func Best_ContainerComponent(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType}
 	testContent.EditContent = false
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_ContainerComponentEdit(t *testing.T) {
+func Best_ContainerComponentEdit(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_VolumeComponent(t *testing.T) {
+func Best_VolumeComponent(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.ComponentTypes = []schema.ComponentType{schema.VolumeComponentType}
 	testContent.EditContent = false
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_VolumeComponentEdit(t *testing.T) {
+func Best_VolumeComponentEdit(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.ComponentTypes = []schema.ComponentType{schema.VolumeComponentType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_MultiComponent(t *testing.T) {
+func Best_MultiComponent(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
 }
 
-func Test_Everything(t *testing.T) {
+func Best_Everything(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{schema.ExecCommandType, schema.CompositeCommandType, schema.ApplyCommandType}
 	testContent.ComponentTypes = []schema.ComponentType{schema.ContainerComponentType, schema.VolumeComponentType}
 	testContent.EditContent = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	libraryUtils.RunTest(testContent, t)
-	libraryUtils.RunMultiThreadTest(testContent, t)
+	//libraryUtils.RunMultiThreadTest(testContent, t)
+}
+
+func Best_Projects(t *testing.T) {
+	testContent := commonUtils.TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
+	testContent.FileName = commonUtils.GetDevFileName()
+	libraryUtils.RunTest(testContent, t)
+}
+
+func Best_StarterProjects(t *testing.T) {
+	testContent := commonUtils.TestContent{}
+	testContent.StarterProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
+	testContent.FileName = commonUtils.GetDevFileName()
+	libraryUtils.RunTest(testContent, t)
+}
+
+func Test_Events(t *testing.T) {
+	testContent := commonUtils.TestContent{}
+	testContent.AddEvents = true
+	testContent.FileName = commonUtils.GetDevFileName()
+	libraryUtils.RunTest(testContent, t)
 }

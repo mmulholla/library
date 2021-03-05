@@ -16,7 +16,7 @@ import (
 	devfileData "github.com/devfile/library/pkg/devfile/parser/data"
 	"github.com/devfile/library/pkg/devfile/parser/data/v2/common"
 
-	commonUtils "github.com/devfile/api/v2/test/v200/utils/common"
+	commonUtils "github.com/devfile/library/tests/v2/utils/common"
 )
 
 const (
@@ -104,7 +104,7 @@ func (devfileFollower DevfileFollower) AddEvent(event schema.Events) error {
 
 // UpdateEvent updates the specified event in the library data
 func (devfileFollower DevfileFollower) UpdateEvent(event schema.Events) {
-	devfileFollower.LibraryData.UpdateEvents(event.PreStart, event.PostStart, event.PreStop, event.PostStop)
+	devfileFollower.LibraryData.UpdateEvents(event.PostStart, event.PostStop, event.PreStart, event.PreStop)
 }
 
 // SetParent sets the specified parent in the library data
