@@ -106,7 +106,7 @@ func (devfileFollower DevfileFollower) AddEvent(event schema.Events) error {
 
 // UpdateEvent updates the specified event in the library data
 func (devfileFollower DevfileFollower) UpdateEvent(event schema.Events) {
-	devfileFollower.LibraryData.UpdateEvents(event.PreStart, event.PostStart, event.PreStop, event.PostStop)
+	devfileFollower.LibraryData.UpdateEvents(event.PostStart, event.PostStop, event.PreStart, event.PreStop)
 }
 
 // SetParent sets the specified parent in the library data
@@ -256,6 +256,12 @@ func RunTest(testContent commonUtils.TestContent, t *testing.T) {
 					t.Fatalf(commonUtils.LogErrorMessage(fmt.Sprintf("ERROR editing starter projects :  %s : %v", testContent.FileName, err)))
 				}
 			}
+			if testContent.Events {
+				err = editEvents(&testDevfile)
+				if err != nil {
+					t.Fatalf(commonUtils.LogErrorMessage(fmt.Sprintf("ERROR editing starter projects :  %s : %v", testContent.FileName, err)))
+				}
+			}
 
 			validator.WriteAndValidate(&testDevfile)
 		}
@@ -330,6 +336,20 @@ func verify(devfile *commonUtils.TestDevfile) error {
 		}
 	}
 
+	commonUtils.LogInfoMessage(fmt.Sprintf("Get events %s : ", devfile.FileName))
+	events, err := libraryData.GetEvents(common.DevfileOptions{})
+	if err != nil {
+		errorString = append(errorString, commonUtils.LogErrorMessage(fmt.Sprintf("Getting Events from library : %s : %v", devfile.FileName, err)))
+	} else {
+		if events != nil && len(events) > 0 {
+			err := VerifyEvents(devfile, events)
+			if err != nil {
+				errorString = append(errorString, commonUtils.LogErrorMessage(fmt.Sprintf("Verify Events %s : %v", devfile.FileName, err)))
+			}
+		} else {
+			commonUtils.LogInfoMessage(fmt.Sprintf("No events found in %s : ", devfile.FileName))
+		}
+	}
 	var returnError error
 	if len(errorString) > 0 {
 		returnError = errors.New(fmt.Sprint(errorString))
